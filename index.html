@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connexion - BDthèque</title>
+    <link rel="stylesheet" href="styles/index.css" />
+</head>
+<body>
+    <div class="login-container">
+        <h1>BDthèque</h1>
+        <div id="error" class="error"></div>
+        <input type="email" id="email" placeholder="Email" />
+        <input type="password" id="password" placeholder="Mot de passe" />
+        <button id="loginBtn">Se connecter</button>
+        <button id="googleBtn" class="google-btn">Se connecter avec Google</button>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js"></script>
+	<script src="scripts/firebaseConfig.js"></script>
+    <script src="scripts/index.js"></script>
+</body>
+</html>
