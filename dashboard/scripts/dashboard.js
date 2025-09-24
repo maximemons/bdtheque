@@ -4,7 +4,7 @@ auth.onAuthStateChanged((user) => {
   if(!user) {
     window.location.href = "../index.html";
   } else {
-    const userPreferences = getUserPreference(user.email);
+    const userPreferences = await getUserPreference(user.email);
     if(userPreferences == undefined) {
     }else {
       document.getElementById("userName").innerText = getDisplayName(userPreferences.self, user.email);
@@ -47,3 +47,4 @@ async function getUserPreference(email) {
     return undefined;
   }
 }
+
