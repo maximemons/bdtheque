@@ -1,3 +1,20 @@
+//ENUMS
+const CollectionsName = {
+  Preferences: 'preferences',
+  Collections: 'collections',
+  Editeurs: 'editeurs',
+  BDs: 'bds'
+};
+
+const Etat = {
+    MauvaisEtat: "ME",
+    BonEtat: "BE",
+    TresBonEtat: "TBE",
+    TresBonEtatPlus: "TBE+",
+    Neuf: "Neuf"
+};
+
+//OBJECTS
 class Preferences {
   constructor(canWrite, firstname, lastname, avatar, shortcuts = []) {
     this.canWrite = canWrite;
@@ -24,14 +41,15 @@ class Collection {
 };
 
 class BD {
-	constructor(fk_collection, fk_edition, ISBN, number, title, year, reputation, goldedition, special, purchasedate) {
+	constructor(fk_collection, fk_edition, ISBN, number, title, year, state, reputation, goldedition, special, purchasedate) {
 		this.fk_collection = fk_collection;
 		this.fk_edition = fk_edition;
 		this.base_info = {
 			ISBN,
 			number,
 			title,
-			year
+			year,
+			state
 		};
 		this.details = {
 			reputation,
