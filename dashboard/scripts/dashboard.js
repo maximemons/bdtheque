@@ -11,6 +11,16 @@ auth.onAuthStateChanged(async (user) => {
       document.getElementById("userName").innerText = getDisplayName(userPreferences.self, user.email);
       document.getElementById("userEmail").innerText = user.email;
       document.getElementById("userAvatar").innerText = getDisplayName(userPreferences.self, user.email).charAt(0).toUpperCase();
+
+      const avatar = userPreferences?.self?.avatar?.trim();
+      if (avatar) {
+        const userAvatar = document.getElementById("userAvatar");
+        userAvatar.insertAdjacentHTML("beforeend", `
+          <div class="avatar-cover">
+            <img src="${avatar}" alt="User avatar">
+          </div>
+        `);
+      }
     }
   }
 });
@@ -48,6 +58,7 @@ async function getUserPreference(email) {
     return undefined;
   }
 }
+
 
 
 
