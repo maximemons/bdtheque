@@ -159,6 +159,19 @@ body {
   font-size: 0.9rem;
 }
 
+.user-avatar .avatar-cover {
+  width: 50px;
+  height: 50px;
+  overflow: hidden;
+  border-radius: 50%;
+}
+
+.user-avatar .avatar-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
 /* Bouton logout dans user-card */
 .btn-logout {
   background: none;
