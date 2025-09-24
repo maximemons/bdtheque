@@ -1,4 +1,5 @@
 const auth = firebase.auth();
+const db = firebase.firestore();
 
 auth.onAuthStateChanged(async (user) => {
   if(!user) {
@@ -47,5 +48,6 @@ async function getUserPreference(email) {
     return undefined;
   }
 }
+
 
 
