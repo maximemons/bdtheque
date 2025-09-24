@@ -10,8 +10,7 @@ auth.onAuthStateChanged(async (user) => {
     }else {
       document.getElementById("userName").innerText = getDisplayName(userPreferences.self, user.email);
       document.getElementById("userEmail").innerText = user.email;
-      document.getElementById("userAvatar").innerText = getDisplayName(userPreferences.self, user.email).charAt(0).toUpperCase();
-
+      
       const avatar = userPreferences?.self?.avatar?.trim();
       if (avatar) {
         const userAvatar = document.getElementById("userAvatar");
@@ -20,6 +19,8 @@ auth.onAuthStateChanged(async (user) => {
             <img src="${avatar}" alt="User avatar">
           </div>
         `);
+      }else {
+        document.getElementById("userAvatar").innerText = getDisplayName(userPreferences.self, user.email).charAt(0).toUpperCase();
       }
     }
   }
@@ -58,6 +59,7 @@ async function getUserPreference(email) {
     return undefined;
   }
 }
+
 
 
 
