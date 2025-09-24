@@ -19,7 +19,7 @@ async function getElements(collectionName) {
   }
 }
 
-async function getElements(collectionName, docId) {
+async function getElement(collectionName, docId) {
   try {
     const doc = await db.collection(collectionName).doc(docId).get();
     if (doc.exists) {
