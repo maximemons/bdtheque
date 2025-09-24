@@ -1,6 +1,6 @@
 const auth = firebase.auth();
 
-auth.onAuthStateChange((user) => {
+auth.onAuthStateChanged((user) => {
   if(!user) {
     window.location.href = "../index.html";
   } else {
@@ -11,3 +11,4 @@ auth.onAuthStateChange((user) => {
 function logout() {
   auth.signOut().then(() => window.location.href = "../login.html");
 }
+
