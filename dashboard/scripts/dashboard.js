@@ -1,6 +1,6 @@
 const auth = firebase.auth();
 
-auth.onAuthStateChanged((user) => {
+auth.onAuthStateChanged(async (user) => {
   if(!user) {
     window.location.href = "../index.html";
   } else {
@@ -47,4 +47,5 @@ async function getUserPreference(email) {
     return undefined;
   }
 }
+
 
