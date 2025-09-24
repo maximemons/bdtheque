@@ -5,7 +5,7 @@ auth.onAuthStateChanged(async (user) => {
   if(!user) {
     window.location.href = "../index.html";
   } else {
-    const userPreferences = await getUserPreference(user.email);
+    const userPreferences = await getElement(CollectionsName.Preferences, user.email);
     if(userPreferences == undefined) {
     }else {
       document.getElementById("userName").innerText = getDisplayName(userPreferences.self, user.email);
@@ -41,22 +41,7 @@ function getDisplayName(user, email) {
   } else if (lastName) {
     return lastName;
   } else {
-    // Extraire la partie avant le @ dans l'email
     return email.split('@')[0];
-  }
-}
-
-//DB functions
-async function getUserPreference(email) {
-  try {
-    const doc = await db.collection("preferences").doc(email).get();
-    if (doc.exists) {
-      return doc.data();
-    }
-    return undefined;
-  } catch (error) {
-    console.error("Erreur lors de la récupération des paramètres :", error);
-    return undefined;
   }
 }
 
