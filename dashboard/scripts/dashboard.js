@@ -45,6 +45,17 @@ function logout() {
   auth.signOut().then(() => window.location.href = "../index.html");
 }
 
+function displayHamburgerMenu() {
+  let sidebar = document.getElementById("sidebar");
+  const classname = "open";
+  
+  if(sidebar.classList.contains(classname)) {
+    sidebar.classList.remove(classname);
+  }else {
+    sidebar.classList.add(classname);
+  }
+}
+
 function getDisplayName(user, email) {
   const firstName = user.firstname?.trim();
   const lastName = user.lastname?.trim();
@@ -68,7 +79,7 @@ function generateShortcutCard(shortcut, number) {
     divCard.innerHTML =`<button>
                           <i class="fas fa-plus"></i>
                         </button>`;
-                        
+
     divCard.classList.add("shortcut-card-plus");
     return divCard;
   }
