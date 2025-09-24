@@ -7,11 +7,19 @@ const CollectionsName = {
 };
 
 const Etat = {
-    MauvaisEtat: "ME",
-    BonEtat: "BE",
-    TresBonEtat: "TBE",
-    TresBonEtatPlus: "TBE+",
-    Neuf: "Neuf"
+	MauvaisEtat: "ME",
+  BonEtat: "BE",
+  TresBonEtat: "TBE",
+  TresBonEtatPlus: "TBE+",
+  Neuf: "Neuf"
+};
+
+const Shortcuts = {
+	BD: "BD",
+	COLLECTIONS: "COLLECTIONS",
+	ACHATSRECENTS: "ACHATSRECENTS",
+	RECHERCHE: "RECHERCHE",
+	AJOUT: "AJOUT"
 };
 
 //OBJECTS

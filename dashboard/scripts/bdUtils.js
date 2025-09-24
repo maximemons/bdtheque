@@ -9,7 +9,7 @@ async function getElements(collectionName) {
     const doc = await db.collection(collectionName).get();
     if (doc.size > 0) {
       let results = [];
-      doc.docs.forEach(curDoc => { results.push(doc.data()); });
+      doc.docs.forEach(curDoc => { results.push(curDoc.data()); });
       return results;
     }
     return [];
@@ -18,6 +18,17 @@ async function getElements(collectionName) {
     return undefined;
   }
 }
+
+async function getElementsSize(collectionName) {
+  try {
+    const doc = await db.collection(collectionName).get();
+    return doc.size;
+  } catch (error) {
+    console.error("Erreur lors de la récupération des paramètres :", error);
+    return undefined;
+  }
+}
+
 
 async function getElement(collectionName, docId) {
   try {

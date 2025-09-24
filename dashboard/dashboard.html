@@ -38,26 +38,25 @@
                         <p id="userEmail"></p>
                     </div>
                 </div>
-                <button id="logoutBtn" class="btn-logout">
+                <button id="logoutBtn" class="btn-logout" onclick="logout()">
                     <i class="fas fa-sign-out-alt"></i> Se déconnecter
                 </button>
             </div>
 
-            <div class="stats">
-                <div class="stat-card">
-                    <i class="fas fa-book"></i>
-                    <h4 id="bdCount">12</h4>
-                    <p>BD</p>
-                </div>
-                <div class="stat-card">
-                    <i class="fas fa-folder"></i>
-                    <h4 id="favCount">4</h4>
-                    <p>Collections</p>
-                </div>
-                <div class="stat-card">
-                    <i class="fas fa-history"></i>
-                    <h4 id="lastReadCount">8</h4>
-                    <p>Dernières lectures</p>
+            <div class="shortcuts" id="shortcuts-container">
+                <div class="shortcut-card shortcut-card-full">
+                    <h2>Rechercher</h2>
+                    <div>
+                        <select>
+                            <option value="bd">BD</option>
+                            <option value="collection">Collection</option>
+                            <option value="editor">Éditeur</option>
+                        </select>
+                        <input type="text">
+                        <button>
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
                 </div>
             </div>
 

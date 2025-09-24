@@ -23,7 +23,6 @@ body {
   line-height: 1.6;
 }
 
-/* Header mobile */
 .header-mobile {
   display: none;
   background: white;
@@ -170,6 +169,7 @@ body {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  cursor: url('../img/avatar_cursor.png') 16 16, auto;
 }
 
 /* Bouton logout dans user-card */
@@ -197,15 +197,16 @@ body {
   margin-right: 0.5rem;
 }
 
-/* Stats */
-.stats {
-  display: flex;
+/* Shortcuts */
+.shortcuts {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(30%, 1fr));
   gap: 1rem;
   margin-bottom: 1.5rem;
   flex-wrap: wrap;
 }
 
-.stat-card {
+.shortcut-card {
   background: white;
   border-radius: var(--border-radius);
   box-shadow: var(--box-shadow);
@@ -215,20 +216,69 @@ body {
   min-width: 120px;
 }
 
-.stat-card i {
+.shortcut-card-full {
+  grid-column: 1 / -1;
+}
+
+.shortcut-card-full select, .shortcut-card-full input, .shortcut-card-full button, .shortcut-card-plus button {
+    background: none;
+    border: 1px solid #eee;
+    font-size: 0.9rem;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem;
+    border-radius: var(--border-radius);
+    transition: all 0.2s;
+    cursor: pointer;
+}
+
+.shortcut-card-full button {
+  height: 33px;
+}
+
+.shortcut-card-full button:hover {
+  background-color: #4361ee4d;
+}
+
+.shortcut-card-full > div {
+  display: flex;
+  align-items: center;
+  gap: 8px; /* Espacement entre les éléments */
+}
+
+.shortcut-card-full input[type="text"] {
+  width: 100%;
+  cursor: inherit;
+}
+
+.shortcut-card-full i {
+  font-size: inherit !important;
+}
+
+.shortcut-card-full h2 {
+  text-align: left;
+  margin-bottom: 15px;
+}
+
+.shortcut-card i {
   font-size: 1.5rem;
   color: var(--primary);
   margin-bottom: 0.5rem;
 }
 
-.stat-card h4 {
+.shortcut-card h4 {
   margin-bottom: 0.25rem;
   font-size: 1.2rem;
 }
 
-.stat-card p {
+.shortcut-card p {
   color: #6c757d;
   font-size: 0.85rem;
+}
+
+.shortcut-card-plus {
+  display: flex;
+  justify-content: center;
 }
 
 /* Contenu */
