@@ -4,17 +4,22 @@ let scannervideo;
 let scanneroverlay;
 let scannerresultArea;
 
+let scannerfctOnClose = undefined;
+
 let codeReader = null; // instance ZXing
 
-function initiateScanner(startBtnId, stopBtnId, videoId, overlayId, resultAreaId) {
+function initiateScanner(startBtnId, stopBtnId, videoId, overlayId, resultAreaId, fctOnClose) {
 	scannerstartBtn = document.getElementById(startBtnId);
 	scannerstopBtn = document.getElementById(stopBtnId);
 	scannervideo = document.getElementById(videoId);
 	scanneroverlay = document.getElementById(overlayId);
 	scannerresultArea = document.getElementById(resultAreaId);
 
+	if(fctOnClose != undefined)
+		scannerfctOnClose = fctOnClose;
+
 	scannerstartBtn.addEventListener('click', startScanner);
-	scannerstopBtn.addEventListener('click', stopScanner);
+	scannerstopBtn.addEventListener('click', stopScanner(true));
 
 	scannervideo.addEventListener('loadedmetadata', fitOverlay);
 	window.addEventListener('resize', fitOverlay);
@@ -69,7 +74,7 @@ async function startScanner() {
 			fitOverlay();
 			if (result) {
 				scannerresultArea.value = result.getText();
-				stopScanner();
+				stopScanner(true);
 				try {
 					const points = result.getResultPoints ? result.getResultPoints() : (result.resultPoints || []);
 					drawResultPoints(points);
@@ -90,7 +95,7 @@ async function startScanner() {
 	}
 }
 
-function stopScanner() {
+function stopScanner(fctAfterClose) {
 	if (codeReader) {
 		try {
 			codeReader.reset();
@@ -108,4 +113,7 @@ function stopScanner() {
 	scannerstartBtn.disabled = false;
 	scannerstopBtn.disabled = true;
 	document.getElementById("modal").style.display = 'none';
+	
+	if(fctAfterClose && scannerfctOnClose != undefined)
+		scannerfctOnClose();
 }

@@ -40,7 +40,7 @@ auth.onAuthStateChanged(async (user) => {
     }
 
     //Init scanner
-    initiateScanner("searchCamera", "closeCamera", "video", "overlay", "searchBarInput");
+    initiateScanner("searchCamera", "closeCamera", "video", "overlay", "searchBarInput", function(){document.getElementById('searchBar').click();});//document.getElementById("searchBar").click());
   }
 });
 
@@ -112,4 +112,8 @@ function changeSearchSubject(value) {
   }else {
     document.getElementById("searchCamera").classList.remove("show-camera");
   }
+}
+
+function search() {
+  
 }
