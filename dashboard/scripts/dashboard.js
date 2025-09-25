@@ -38,6 +38,9 @@ auth.onAuthStateChanged(async (user) => {
         }
       });
     }
+
+    //Init scanner
+    initiateScanner("searchCamera", "closeCamera", "video", "overlay", "searchBarInput");
   }
 });
 
@@ -101,4 +104,12 @@ function countBoughtSinceTwoMonthsAgo(data) {
   const cutoff = new Date(now.getFullYear(), now.getMonth() - 2, 1, 0, 0, 0, 0);
 
   return data.filter(item => item.boughtdate && item.boughtdate * 1000 >= cutoff.getTime()).length;
+}
+
+function changeSearchSubject(value) {
+  if(value == "bd") {
+    document.getElementById("searchCamera").classList.add("show-camera");
+  }else {
+    document.getElementById("searchCamera").classList.remove("show-camera");
+  }
 }

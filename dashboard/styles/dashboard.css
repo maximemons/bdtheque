@@ -101,7 +101,7 @@ body {
 }
 
 /* Mobile layout */
-@media (max-width: 768px) {
+@media (max-width: 650px) {
   .header-mobile {
     display: block;
   }
@@ -116,6 +116,10 @@ body {
     margin-left: 0;
     width: 100%;
     padding: 1rem;
+  }
+
+  #searchCamera.show-camera {
+    display: inherit !important;
   }
 }
 
@@ -173,7 +177,7 @@ body {
 }
 
 /* Bouton logout dans user-card */
-.btn-logout {
+.btn-logout, #closeCamera {
   background: none;
   border: 1px solid #eee;
   color: var(--danger);
@@ -188,7 +192,7 @@ body {
   width: 100%;
 }
 
-.btn-logout:hover {
+.btn-logout:hover, #closeCamera:hover {
   background: rgba(247, 37, 133, 0.1);
   border-color: rgba(247, 37, 133, 0.2);
 }
@@ -253,6 +257,7 @@ body {
 
 .shortcut-card-full i {
   font-size: inherit !important;
+  margin: auto;
 }
 
 .shortcut-card-full h2 {
@@ -281,6 +286,10 @@ body {
   justify-content: center;
 }
 
+#searchCamera {
+  display: none;
+}
+
 /* Contenu */
 .content {
   background: white;
@@ -294,3 +303,53 @@ body {
   margin-bottom: 1rem;
   font-size: 1.25rem;
 }
+
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    overflow: auto;
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: 15% auto;
+    padding: 20px;
+    border-radius: 8px;
+    width: 80%;
+    max-width: 600px;
+    text-align: center;
+}
+
+.modal-content #videoWrap {
+    position: relative;
+    width: 100%;
+}
+
+.modal-content #video, .modal-content #overlay {
+    width: 100%;
+    max-height: 400px;
+}
+
+#closeCamera {
+    margin-top: 15px;
+    padding: 8px 16px;
+    background-color: #f44336;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+#closeCamera:hover {
+    background-color: #d32f2f;
+}
+
+.modal-content #videoWrap{position:relative;width:100%;max-width:640px;background:#000;border-radius:8px;overflow:hidden}
+.modal-content video{width:100%;height:auto;display:block}
+.modal-content #overlay{position:absolute;inset:0;pointer-events:none}
