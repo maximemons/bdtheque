@@ -68,6 +68,7 @@ async function startScanner() {
 		await codeReader.decodeFromVideoDevice(null, 'video', (result, err) => {
 			fitOverlay();
 			if (result) {
+				alert("OK");
 				scannerresultArea.value = result.getText();
 				try {
 					const points = result.getResultPoints ? result.getResultPoints() : (result.resultPoints || []);
