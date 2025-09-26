@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>404 - Page introuvable</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Comic+Neue:wght@700&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Comic Neue', cursive;
+    background: #f0f8ff;
+    overflow: hidden;
+  }
+
+  .comic-page {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: repeat(2, 50vh);
+    gap: 10px;
+    padding: 10px;
+    height: 100vh;
+  }
+
+  .panel {
+    position: relative;
+    background: #fff;
+    border: 5px solid #000;
+    border-radius: 5px;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .character {
+    width: 80px;
+    position: absolute;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    animation: fall 3s ease-in forwards;
+  }
+
+  @keyframes fall {
+    0% { bottom: 80%; transform: translateX(-50%) rotate(0deg); }
+    50% { bottom: 40%; transform: translateX(-50%) rotate(20deg); }
+    100% { bottom: 10px; transform: translateX(-50%) rotate(-10deg); }
+  }
+
+  .bubble {
+    position: absolute;
+    background: #fff;
+    border: 3px solid #000;
+    border-radius: 50%;
+    padding: 10px;
+    font-size: 1rem;
+    max-width: 150px;
+    opacity: 0;
+    animation: popBubble 2s forwards;
+  }
+
+  @keyframes popBubble {
+    0% { transform: scale(0); opacity: 0; }
+    50% { transform: scale(1.2); opacity: 1; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+
+  .panel-text {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    font-size: 2rem;
+    color: #ff0033;
+    text-shadow: 2px 2px #000;
+  }
+</style>
+</head>
+<body>
+
+<div class="comic-page">
+  <div class="panel">
+    <div class="panel-text">Oups ! Page introuvable...</div>
+  </div>
+  <div class="panel">
+    <img src="TODO AJOUTER IMAGE SMURF" alt="Schtroumpf" class="character" id="character">
+  </div>
+  <div class="panel">
+    <!-- Bulle de dialogue -->
+  </div>
+  <div class="panel">
+    <div class="panel-text">Retournez vite à l'accueil !</div>
+  </div>
+</div>
+
+<script>
+  const bubble = document.createElement('div');
+  bubble.className = 'bubble';
+  bubble.innerText = "Je crois que je me suis fait un bleu !";
+  document.querySelectorAll('.panel')[1].appendChild(bubble);
+
+  // Position aléatoire sur le panel
+  bubble.style.left = '60%';
+  bubble.style.top = '20%';
+</script>
+
+</body>
+</html>
