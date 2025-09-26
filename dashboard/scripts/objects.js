@@ -49,21 +49,22 @@ class Collection {
 };
 
 class BD {
-	constructor(fk_collection, fk_edition, ISBN, number, title, year, state, reputation, goldedition, special, purchasedate) {
-		this.fk_collection = fk_collection;
-		this.fk_edition = fk_edition;
-		this.base_info = {
-			ISBN,
-			number,
-			title,
-			year,
-			state
-		};
-		this.details = {
-			reputation,
-			goldedition,
-			special
-		};
-		this.purchasedate;
-	}
-};
+  	constructor(fk_collection, fk_edition, ISBN, number, title, year, state, cover, reputation, goldedition, special, purchasedate) {
+	    this.fk_collection = fk_collection;
+	    this.fk_edition = fk_edition;
+	    this.base_info = {
+	    	ISBN,
+	      	number,
+	      	title,
+	      	year,
+	      	state,
+	      	cover
+	    };
+	    this.details = {
+	      	reputation,
+	      	goldedition,
+	      	special
+	    };
+	    this.purchasedate = purchasedate;
+  	}
+}
