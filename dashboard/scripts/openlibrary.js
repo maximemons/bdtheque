@@ -15,6 +15,7 @@ function parseTitleForCollection(title) {
 async function fetchBDFromISBN(isbn, {
   fk_collection = null,
   fk_edition = null,
+  fk_specialedition = null,
   number = null,
   state = null,
   reputation = null,
@@ -33,7 +34,7 @@ async function fetchBDFromISBN(isbn, {
 
     if (!book) {
       console.warn(`Aucune donnée trouvée pour ISBN ${isbn}`);
-      return new BD(fk_collection, fk_edition, isbn, number, null, null, state, null, reputation, goldedition, special, purchasedate);
+      return new BD(fk_collection, fk_edition, fk_specialedition, isbn, number, null, null, state, null, reputation, goldedition, special, purchasedate);
     }
 
     let title = book.title || null;
@@ -56,6 +57,7 @@ async function fetchBDFromISBN(isbn, {
     return new BD(
       fk_collection,
       fk_edition,
+      fk_specialedition,
       isbn,
       number,
       title,
