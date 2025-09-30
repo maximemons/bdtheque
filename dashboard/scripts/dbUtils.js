@@ -21,7 +21,7 @@ async function getElements(collectionName) {
     const doc = await db.collection(collectionName).get();
     if (doc.size > 0) {
       let results = [];
-      doc.docs.forEach(curDoc => { results.push(curDoc.data()); });
+      doc.docs.forEach(curDoc => { results.push({"id": curDoc.id, "object": curDoc.data() }); });
       return results;
     }
     return [];

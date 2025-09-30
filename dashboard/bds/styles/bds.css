@@ -166,52 +166,59 @@
 }
 
 /* Zone BD */
-.bd-list {
-  flex: 1;
-  padding: 1rem;
-  overflow-y: auto;
-}
-
-.collection-section {
+.collection-block {
   margin-bottom: 2rem;
+  width: 100%;
 }
 
-.collection-section h3 {
+.collection-block h2 {
   margin-bottom: 1rem;
+  font-size: 1.5rem;
   border-bottom: 2px solid #ccc;
   padding-bottom: 0.5rem;
 }
 
-.bds {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+.bd-list {
+  display: flex;
+  flex-wrap: wrap;
   gap: 1rem;
 }
 
-.bd {
-  background: #f9f9f9;
-  padding: 0.5rem;
+.bd-card {
+  background: #fff;
   border-radius: 8px;
   box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  overflow: hidden;
+  width: 150px;
   text-align: center;
+  transition: transform 0.2s;
 }
 
-.bd img {
-  max-width: 100%;
+.bd-card:hover {
+  transform: scale(1.05);
+}
+
+.bd-cover {
+  width: 100%;
   height: auto;
-  border-radius: 4px;
-  margin-bottom: 0.5rem;
+  display: block;
 }
 
-.bd .title {
-  font-weight: bold;
-  font-size: 14px;
+.bd-info {
+  padding: 0.5rem;
 }
 
-.bd .year {
-  font-size: 12px;
+.bd-info h3 {
+  font-size: 1rem;
+  margin: 0.2rem 0;
+}
+
+.bd-info p {
+  font-size: 0.9rem;
   color: #555;
+  margin: 0;
 }
+
 
 /* Message liste vide */
 .empty {

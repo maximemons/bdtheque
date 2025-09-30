@@ -48,10 +48,9 @@ class Collection {
 };
 
 class BD {
-  	constructor(fk_collection, fk_edition, fk_specialedition, ISBN, number, title, year, state, cover, reputation, goldedition, special, purchasedate) {
+  	constructor(fk_collection, fk_edition, ISBN, number, title, year, state, cover, reputation, goldedition, special, purchasedate) {
 	    this.fk_collection = fk_collection;
 	    this.fk_edition = fk_edition;
-	    this.fk_specialedition = fk_specialedition;
 	    this.base_info = {
 	    	ISBN,
 	      	number,
