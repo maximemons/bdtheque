@@ -15,11 +15,10 @@ const Etat = {
 };
 
 const Shortcuts = {
-	BD: "BD",
-	COLLECTIONS: "COLLECTIONS",
-	ACHATSRECENTS: "ACHATSRECENTS",
-	RECHERCHE: "RECHERCHE",
-	AJOUT: "AJOUT"
+	BD: ["BD", false],
+	COLLECTIONS: ["COLLECTIONS", false],
+	ACHATSRECENTS: ["ACHATSRECENTS", false],
+	AJOUT: ["AJOUT", true]
 };
 
 //OBJECTS
@@ -49,9 +48,10 @@ class Collection {
 };
 
 class BD {
-  	constructor(fk_collection, fk_edition, ISBN, number, title, year, state, cover, reputation, goldedition, special, purchasedate) {
+  	constructor(fk_collection, fk_edition, fk_specialedition, ISBN, number, title, year, state, cover, reputation, goldedition, special, purchasedate) {
 	    this.fk_collection = fk_collection;
 	    this.fk_edition = fk_edition;
+	    this.fk_specialedition = fk_specialedition;
 	    this.base_info = {
 	    	ISBN,
 	      	number,

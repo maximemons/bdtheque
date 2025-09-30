@@ -5,58 +5,54 @@ auth.onAuthStateChanged(async (user) => {
   if(!user) {
     window.location.href = "../index.html";
   } else {
-    const userPreferences = await getElement(CollectionsName.Preferences, user.email);
+    let userPreferences = await getElement(CollectionsName.Preferences, user.email);
     if(userPreferences == undefined) {
-    }else {
-      //Implements USERNAME
-      document.getElementById("userName").innerText = getDisplayName(userPreferences.self, user.email);
-      document.getElementById("userEmail").innerText = user.email;
-      
-      //IMPLEMENTS AVATAR
-      const avatar = userPreferences?.self?.avatar?.trim();
-      if (avatar) {
-        const userAvatar = document.getElementById("userAvatar");
-        userAvatar.insertAdjacentHTML("beforeend", `
-          <div class="avatar-cover">
-            <img src="${avatar}" alt="User avatar">
-          </div>
-        `);
-      }else {
-        document.getElementById("userAvatar").innerText = getDisplayName(userPreferences.self, user.email).charAt(0).toUpperCase();
-      }
-
-      //IMPLEMENTS SHORTCUTS
-      const shortcuts = document.getElementById("shortcuts-container");
-      await Array.from(userPreferences.shortcuts || "").forEach(async shortcut => {
-        if(shortcut == Shortcuts.BD || shortcut == Shortcuts.COLLECTIONS){
-          shortcuts.appendChild(generateShortcutCard(shortcut, await getElementsSize(shortcut)));
-        } else if(shortcut == Shortcuts.ACHATSRECENTS) {
-          const bds = await getElements(CollectionsName.BDs);
-          shortcuts.appendChild(generateShortcutCard(shortcut, countBoughtSinceTwoMonthsAgo(bds)));
-        } else if(shortcut == Shortcuts.AJOUT) {
-          shortcuts.appendChild(generateShortcutCard(shortcut));
-        }
-      });
+      userPreferences = new Preferences();
     }
+    //Implements USERNAME
+    document.getElementById("userName").innerText = getDisplayName(userPreferences.self, user.email);
+    document.getElementById("userEmail").innerText = user.email;
+      
+    //IMPLEMENTS AVATAR
+    const avatar = userPreferences?.self?.avatar?.trim();
+    if (avatar) {
+      const userAvatar = document.getElementById("userAvatar");
+      userAvatar.insertAdjacentHTML("beforeend", `
+        <div class="avatar-cover">
+          <img src="${avatar}" alt="User avatar">
+        </div>
+      `);
+    }else {
+      document.getElementById("userAvatar").innerText = getDisplayName(userPreferences.self, user.email).charAt(0).toUpperCase();
+    }
+
+    //IMPLEMENTS SHORTCUTS
+    const shortcuts = document.getElementById("shortcuts-container");
+    await Array.from(userPreferences.shortcuts || "").forEach(async shortcut => {
+      if(shortcut == Shortcuts.BD[0] || shortcut == Shortcuts.COLLECTIONS[0]){
+        shortcuts.appendChild(generateShortcutCard(shortcut, await getElementsSize(shortcut == Shortcuts.BD[0] ? CollectionsName.BDs : CollectionsName.Collections)));
+      } else if(shortcut == Shortcuts.ACHATSRECENTS[0]) {
+        const bds = await getElements(CollectionsName.BDs);
+        shortcuts.appendChild(generateShortcutCard(shortcut, countBoughtSinceTwoMonthsAgo(bds)));
+      } else if(shortcut == Shortcuts.AJOUT[0]) {
+        shortcuts.appendChild(generateShortcutCard(shortcut));
+      }
+    });
 
     //Init scanner
     initiateScanner("searchCamera", "closeCamera", "video", "overlay", "searchBarInput", function(){document.getElementById('searchBar').click();});//document.getElementById("searchBar").click());
+  
+    //easterEggs ? 
+    if(Math.floor(Math.random() * 3) == 2) {
+      if(document.getElementsByClassName("avatar-cover").length > 0) {
+        let img = document.getElementsByClassName("avatar-cover")[0].classList.add("avatar-cover-easter-egg");  
+      }
+    }
   }
 });
 
 function logout() {
   auth.signOut().then(() => window.location.href = "../index.html");
-}
-
-function displayHamburgerMenu() {
-  let sidebar = document.getElementById("sidebar");
-  const classname = "open";
-  
-  if(sidebar.classList.contains(classname)) {
-    sidebar.classList.remove(classname);
-  }else {
-    sidebar.classList.add(classname);
-  }
 }
 
 function getDisplayName(user, email) {
@@ -78,7 +74,7 @@ function generateShortcutCard(shortcut, number) {
   const divCard = document.createElement("div");
   divCard.classList.add("shortcut-card");
 
-  if(shortcut == Shortcuts.AJOUT) {
+  if(shortcut == Shortcuts.AJOUT[0]) {
     divCard.innerHTML =`<button>
                           <i class="fas fa-plus"></i>
                         </button>`;
@@ -87,15 +83,14 @@ function generateShortcutCard(shortcut, number) {
     return divCard;
   }
 
-  divCard.innerHTML =`<i class="fas ${shortcut == Shortcuts.BD ? 'fa-book' : 
-                                        shortcut == Shortcuts.COLLECTIONS ? 'fa-folder' : 
-                                          shortcut == Shortcuts.ACHATSRECENTS ? 'fa-clock' : ''}"></i>
+  divCard.innerHTML =`<i class="fas ${shortcut == Shortcuts.BD[0] ? 'fa-book' : 
+                                        shortcut == Shortcuts.COLLECTIONS[0] ? 'fa-folder' : 
+                                          shortcut == Shortcuts.ACHATSRECENTS[0] ? 'fa-clock' : ''}"></i>
                       <h4>${number}</h4>
-                      <p>${(shortcut == Shortcuts.BD || shortcut == Shortcuts.COLLECTIONS) ? shortcut : 
-                            shortcut == Shortcuts.ACHATSRECENTS  ? 
+                      <p>${(shortcut == Shortcuts.BD[0] || shortcut == Shortcuts.COLLECTIONS[0]) ? shortcut : 
+                            shortcut == Shortcuts.ACHATSRECENTS[0]  ? 
                             "Achat(s) depuis " + new Date(new Date().setMonth(new Date().getMonth() - 2)).toLocaleString("fr-FR", { month: "long", year: "numeric" }) : ""}</p>
                       `;
-
     return divCard;  
 }
 
@@ -112,8 +107,12 @@ function changeSearchSubject(value) {
   }else {
     document.getElementById("searchCamera").classList.remove("show-camera");
   }
+
+  document.getElementById("searchBarInput").placeholder = 
+    value == "bd" ? "titre, numéro, année ou ISBN" : (
+    (value == "collection" || value == "editor") ? "nom" : "");
 }
 
 function search() {
-  
+
 }

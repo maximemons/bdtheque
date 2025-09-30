@@ -11,100 +11,57 @@
 
   body {
     font-family: 'Comic Neue', cursive;
-    background: #f0f8ff;
-    overflow: hidden;
-  }
-
-  .comic-page {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    grid-template-rows: repeat(2, 50vh);
-    gap: 10px;
-    padding: 10px;
+    background: #F9F2DF;
     height: 100vh;
-  }
-
-  .panel {
-    position: relative;
-    background: #fff;
-    border: 5px solid #000;
-    border-radius: 5px;
-    overflow: hidden;
     display: flex;
     justify-content: center;
     align-items: center;
   }
 
-  .character {
-    width: 80px;
-    position: absolute;
-    bottom: 10px;
-    left: 50%;
-    transform: translateX(-50%);
-    animation: fall 3s ease-in forwards;
+  #mainContent {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    width: 100%;
+    text-align: center;
+    padding: 1rem;
   }
 
-  @keyframes fall {
-    0% { bottom: 80%; transform: translateX(-50%) rotate(0deg); }
-    50% { bottom: 40%; transform: translateX(-50%) rotate(20deg); }
-    100% { bottom: 10px; transform: translateX(-50%) rotate(-10deg); }
-  }
-
-  .bubble {
-    position: absolute;
-    background: #fff;
-    border: 3px solid #000;
-    border-radius: 50%;
-    padding: 10px;
-    font-size: 1rem;
-    max-width: 150px;
-    opacity: 0;
-    animation: popBubble 2s forwards;
-  }
-
-  @keyframes popBubble {
-    0% { transform: scale(0); opacity: 0; }
-    50% { transform: scale(1.2); opacity: 1; }
-    100% { transform: scale(1); opacity: 1; }
-  }
-
-  .panel-text {
-    position: absolute;
-    top: 10px;
-    left: 10px;
+  h2 {
+    margin-bottom: 1rem;
     font-size: 2rem;
-    color: #ff0033;
-    text-shadow: 2px 2px #000;
+  }
+
+  img {
+    max-width: 100%;
+    max-height: 60vh; /* évite que l'image dépasse trop */
+    object-fit: contain;
+    margin-bottom: 1rem;
+  }
+
+  button {
+    padding: 0.7rem 1.5rem;
+    border: none;
+    border-radius: 8px;
+    background: #ff8a65;
+    color: white;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: 0.2s;
+  }
+
+  button:hover {
+    background: #ff7043;
   }
 </style>
 </head>
 <body>
-
-<div class="comic-page">
-  <div class="panel">
-    <div class="panel-text">Oups ! Page introuvable...</div>
+  <div id="mainContent">
+    <h2>404 - Page introuvable</h2>
+    <img src="img/404.png" alt="404 image"/>
+    <button onclick="location.href='index.html'">Retour à l'accueil</button>
   </div>
-  <div class="panel">
-    <img src="TODO AJOUTER IMAGE SMURF" alt="Schtroumpf" class="character" id="character">
-  </div>
-  <div class="panel">
-    <!-- Bulle de dialogue -->
-  </div>
-  <div class="panel">
-    <div class="panel-text">Retournez vite à l'accueil !</div>
-  </div>
-</div>
-
-<script>
-  const bubble = document.createElement('div');
-  bubble.className = 'bubble';
-  bubble.innerText = "Je crois que je me suis fait un bleu !";
-  document.querySelectorAll('.panel')[1].appendChild(bubble);
-
-  // Position aléatoire sur le panel
-  bubble.style.left = '60%';
-  bubble.style.top = '20%';
-</script>
-
 </body>
 </html>
