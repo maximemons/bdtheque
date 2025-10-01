@@ -16,13 +16,45 @@ auth.onAuthStateChanged(async (user) => {
 
     await initBdBooksUtils();
     await initAddForm();
-    displayBDs(ALLBDS);
+
+    const urlParams = new URLSearchParams(window.location.search);
+    if(urlParams.has("search")){
+      document.getElementById("searchBarInput").value = urlParams.get("search");
+    }else if(urlParams.has("add")){
+      showAddBdForm();
+      document.getElementById("isbn").value = urlParams.get("add");
+    }
+
+    document.getElementById("searchBarInput").addEventListener("change", search);
+    document.getElementById("searchBar").addEventListener("click", search);
+
+    search();
   }
 });
 
 function displayBDs(bds) {
-  // Grouper les BDs par collection + specialedition
+  let bdList = document.getElementById("bdList");
+
+  if(bds == undefined || bds == null || bds.length == 0){
+    bdList.innerHTML = `<div class="collection-block"><h2>La liste est vide</h2></div>`;
+    return;
+  }
+
+    bdList.innerHTML = "";
+
   const grouped = {};
+
+  bds.sort((a, b) => {
+    const numA = parseInt(a.object.base_info.number, 10);
+    const numB = parseInt(b.object.base_info.number, 10);
+
+    if (numA !== numB) return numA - numB;
+
+    const titleA = a.object.base_info.title.toLowerCase();
+    const titleB = b.object.base_info.title.toLowerCase();
+
+    return titleA.localeCompare(titleB);
+  });
 
   bds.forEach(bd => {
     const col = bd.object.fk_collection?.name || "Sans collection";
@@ -42,6 +74,7 @@ function displayBDs(bds) {
     html += `<h2>${collectionName}</h2>`;
     html += `<div class="bd-list">`;
     bdList.forEach(bd => {
+      const number = (bd.object.base_info?.number) ? bd.object.base_info?.number + "- " : ""; 
       const title = bd.object.base_info?.title || "Sans titre";
       const year = bd.object.base_info?.year || "";
       const cover = bd.object.base_info?.cover || "";
@@ -50,7 +83,7 @@ function displayBDs(bds) {
       <div class="bd-card">
       <img src="${cover}" alt="${title}" class="bd-cover"/>
       <div class="bd-info">
-      <h3>${title}</h3>
+      <h3>${number}${title}</h3>
       <p>${year}</p>
       </div>
       </div>
@@ -60,7 +93,7 @@ function displayBDs(bds) {
     html += `</div>`;
   }
 
-  document.getElementById("bdList").innerHTML = html;
+  bdList.innerHTML = html;
 }
 
 function showAddBdForm() {
@@ -116,7 +149,7 @@ async function initAddForm() {
     let bd = formToBd();
 
     await createBook(bd, collection, editeur);
-    window.location.reload();
+    window.location.href = window.location.origin + window.location.pathname;
   });
 };
 
@@ -224,3 +257,12 @@ function previewImageForm() {
   }
 }
 
+function search() {
+  let inputSearch = document.getElementById("searchBarInput").value;
+
+  if(inputSearch.trim == "") {
+    displayBDs(ALLBDS);
+    return;
+  }
+  displayBDs(searchBD(inputSearch));
+}

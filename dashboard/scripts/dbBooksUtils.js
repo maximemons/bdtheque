@@ -30,7 +30,7 @@ async function createBook(BD, COLLECTION, EDITION) {
 	BD.fk_collection = collectionId;
 	BD.fk_edition = editionId;
 
-	let bdId = `${collectionId}:${editionId}:${BD.base_info?.title}:${generateShortUUID()}`;
+	let bdId = `${BD.base_info?.title || ''}:${BD.base_info?.number || ''}:${BD.base_info?.year || ''}:${BD.base_info.ISBN}:${generateShortUUID()}`;
 
 	await createOrUpdateElement(CollectionsName.BDs, BD, bdId);
 }
@@ -69,4 +69,8 @@ async function initBdBooksUtils() {
 	ALLBDS = await getElements(CollectionsName.BDs);
 
 	ALLBDS = enrichBDs(ALLBDS, ALLCOLLECTIONS, ALLEDITIONS);
+}
+
+function searchBD(searchQuery) {
+	return ALLBDS.filter(item => item.id.substring(0, item.id.lastIndexOf(':')).replaceAll(":", "").replaceAll("-","").toLowerCase().includes(searchQuery.replaceAll("-","").toLowerCase().trim()));
 }

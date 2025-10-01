@@ -58,12 +58,12 @@
                 <div class="shortcut-card shortcut-card-full">
                     <h2>Rechercher</h2>
                     <div>
-                        <select onchange="changeSearchSubject(this.value)">
+                        <select id="searchCateg" onchange="changeSearchSubject(this.value)">
                             <option value="bd">BD</option>
                             <option value="collection">Collection</option>
                             <option value="editor">Éditeur</option>
                         </select>
-                        <input id="searchBarInput" type="text" placeholder="titre, numéro, année ou ISBN    ">
+                        <input id="searchBarInput" type="text" placeholder="titre, numéro, année ou ISBN">
                         <button id="searchCamera" class="show-camera">
                             <i class="fas fa-camera"></i>
                         </button>

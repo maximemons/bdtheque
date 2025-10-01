@@ -42,6 +42,8 @@ auth.onAuthStateChanged(async (user) => {
     //Init scanner
     initiateScanner("searchCamera", "closeCamera", "video", "overlay", "searchBarInput", function(){document.getElementById('searchBar').click();});//document.getElementById("searchBar").click());
   
+    document.getElementById("searchBar").addEventListener("click", search);
+
     //easterEggs ? 
     if(Math.floor(Math.random() * 3) == 2) {
       if(document.getElementsByClassName("avatar-cover").length > 0) {
@@ -125,5 +127,9 @@ function changeSearchSubject(value) {
 }
 
 function search() {
+  let searchCateg = document.getElementById("searchCateg").value;
 
+  if(searchCateg == "bd") {
+    window.location = "bds/bds.html?search=" + document.getElementById("searchBarInput").value;
+  }
 }
