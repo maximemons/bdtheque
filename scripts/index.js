@@ -56,7 +56,8 @@ eeh1.addEventListener("click", () => {
     }
 });
 
-function resetPassword() {
+function resetPassword(e) {
+    e.preventDefault();
     let email = document.getElementById("email").value;
 
     if(value.trim() == "") {
