@@ -94,11 +94,22 @@ function generateShortcutCard(shortcut, number) {
     return divCard;  
 }
 
-function countBoughtSinceTwoMonthsAgo(data) {
+function countBoughtSinceTwoMonthsAgo(items) {
   const now = new Date();
-  const cutoff = new Date(now.getFullYear(), now.getMonth() - 2, 1, 0, 0, 0, 0);
+    const twoMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 2, 1);
 
-  return data.filter(item => item.boughtdate && item.boughtdate * 1000 >= cutoff.getTime()).length;
+    let count = 0;
+
+    for (const item of items.map(d => d.object)) {
+        if (item.purchasedate) {
+            const purchaseDate = new Date(item.purchasedate);
+            if (purchaseDate > twoMonthsAgo) {
+                count++;
+            }
+        }
+    }
+
+    return count;
 }
 
 function changeSearchSubject(value) {

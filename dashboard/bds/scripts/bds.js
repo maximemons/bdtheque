@@ -44,7 +44,7 @@ function displayBDs(bds) {
     bdList.forEach(bd => {
       const title = bd.object.base_info?.title || "Sans titre";
       const year = bd.object.base_info?.year || "";
-      const cover = bd.object.base_info?.cover || "https://maximemons.github.io/bdtheque/dashboard/bds/img/nocover.jpg";
+      const cover = bd.object.base_info?.cover || "";
 
       html += `
       <div class="bd-card">
@@ -78,9 +78,6 @@ function hideAddBdForm() {
 }
 
 async function initAddForm() {
-  completeCollection = Array.from(await getElements(CollectionsName.Collections));
-  collections = completeCollection.map(c => c.name);
-  editeurs = Array.from(await getElements(CollectionsName.Editeurs)).map(e => e.name);
   let etats = Object.keys(Etat);
   const etatsJson = [];
 
@@ -102,8 +99,8 @@ async function initAddForm() {
   };
   fillSelect();
 
-  setupAutocomplete("collection", collections, "collection-suggestions");
-  setupAutocomplete("editeur", editeurs, "editeur-suggestions");
+  setupAutocomplete("collection", ALLCOLLECTIONS.map(c => c.object.name), "collection-suggestions");
+  setupAutocomplete("editeur", ALLEDITIONS.map(e => e.object.name), "editeur-suggestions");
 
   // Validation ISBN simple
   const form = document.getElementById("livre-form");
@@ -124,6 +121,8 @@ async function initAddForm() {
 };
 
 function setupAutocomplete(inputId, dataArray, listId) {
+  dataArray = [...new Set(dataArray)];
+
   const input = document.getElementById(inputId);
   const list = document.getElementById(listId);
 
@@ -204,6 +203,7 @@ function formToBd() {
       (document.getElementById("couvertureImage").src.trim().indexOf("file://") == 0 ? undefined : document.getElementById("couvertureImage").src.trim()),
     document.getElementById("cote").value.trim() == "" ? undefined : document.getElementById("cote").value.trim(),
     document.getElementById("edition_or").value.trim() == "" ? undefined : document.getElementById("edition_or").value.trim(),
+    document.getElementById("specialite").value.trim() == "" ? undefined : document.getElementById("specialite").value.trim(),
     document.getElementById("date_achat").value.trim() == "" ? undefined : document.getElementById("date_achat").value.trim()
     );
 }

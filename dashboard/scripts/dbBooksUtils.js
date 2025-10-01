@@ -12,14 +12,14 @@ async function createBook(BD, COLLECTION, EDITION) {
 	let collectionId = undefined;
 	let editionId = undefined;
 
-	if(COLLECTION != undefined) {
+	if(COLLECTION.name != undefined) {
 		collectionId = findIdByCollection(ALLCOLLECTIONS, COLLECTION);
 		if(collectionId == undefined) {
 			collectionId = `${COLLECTION.name}:${COLLECTION.specialedition}:${generateShortUUID()}`;
 			await createOrUpdateElement(CollectionsName.Collections, COLLECTION, collectionId);
 		}
 	}
-	if(EDITION != undefined) {
+	if(EDITION.name != undefined) {
 		editionId = findIdByEdition(ALLEDITIONS, EDITION);
 		if(editionId == undefined) {
 			editionId = `${EDITION.name}:${generateShortUUID()}`;
