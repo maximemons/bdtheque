@@ -39,8 +39,7 @@ function findIdByCollection(arr, criteria) {
   const item = arr.find(
     (el) =>
       el.object.name === criteria.name &&
-      (criteria.specialedition === undefined ||
-       el.object.specialedition === criteria.specialedition)
+      (el.object.specialedition === criteria.specialedition)
   );
   return item ? item.id : undefined;
 }
