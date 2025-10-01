@@ -58,9 +58,9 @@ eeh1.addEventListener("click", () => {
 
 function resetPassword(e) {
     e.preventDefault();
-    let email = document.getElementById("email").value;
+    const email = document.getElementById("email").value;
 
-    if(value.trim() == "") {
+    if(email.trim() == "") {
         alert("Entrez d'abord votre mail !");
         return;
     }
