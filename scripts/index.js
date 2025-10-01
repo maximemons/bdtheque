@@ -55,3 +55,16 @@ eeh1.addEventListener("click", () => {
         });
     }
 });
+
+function resetPassword() {
+    let email = document.getElementById("email").value;
+
+    if(value.trim() == "") {
+        alert("Entrez d'abord votre mail !");
+        return;
+    }
+
+    auth.sendPasswordResetEmail(email)
+        .then(() => {alert("Un email de réinitialisation à été envoyé !");})
+        .catch((error) => {alert("Une erreur s'est produite : " + error.message());});
+}
