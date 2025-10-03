@@ -37,7 +37,7 @@ getCurrentUser().then(async (user) => {
   //Init scanner
   initiateScanner("searchCamera", "closeCamera", "video", "overlay", "searchBarInput", function(){document.getElementById('searchBar').click();});//document.getElementById("searchBar").click());
 
-  document.getElementById("searchBar").addEventListener("click", search);
+  //document.getElementById("searchBar").addEventListener("click", search);
 
   //Init EasterEgg
   initEasterEgg();
