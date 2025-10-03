@@ -1,7 +1,7 @@
 import { countDocuments, countDocumentsWithWhere } from '../scripts/firebase-db.js';
 import { getCurrentUser, logout } from '../scriptsfirebase-auth.js';
 
-getCurrentUser().then(user => {
+getCurrentUser().then(async (user) => {
   if(!user) {
     window.location.href = "../index.html";
   }
