@@ -13,4 +13,21 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 
-export { auth };
+function getCurrentUser() {
+    return new Promise((resolve, reject) => {
+        onAuthStateChanged(auth, (user) => {
+            resolve(user);
+        }, reject);
+    });
+}
+
+async function logout() {
+    try {
+        await signOut(auth);
+        window.location.href = "index.html";
+    } catch (error) {
+        console.error("Erreur lors de la déconnexion :", error);
+    }
+}
+
+export { app, auth, getCurrentUser, logout };
