@@ -10,13 +10,13 @@
     <div class="login-container">
         <h1 id="loginTitle">BDthèque</h1>
         <div id="error" class="error"></div>
+        <div id="success" class="success"></div>
         <input type="email" id="email" placeholder="Email" />
         <input type="password" id="password" placeholder="Mot de passe" />
         <button id="loginBtn">Se connecter</button>
-		<a href="" onclick="resetPassword(event)">Mot de passe oublié ?</a>
+		<a id="forgetPwd" href="" onclick="resetPassword(event)">Mot de passe oublié ?</a>
     </div>
 
-    <!-- Firebase SDK -->
     <script type="module" src="./scripts/index.js"></script>
 </body>
 </html>
