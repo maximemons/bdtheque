@@ -71,7 +71,7 @@ async function generateShortcutsFromPreferences(userPreferences) {
   const canWrite = Boolean(userPreferences.canWrite);
   const shortcuts = document.getElementById("shortcuts-container");
 
-  wantedShortcuts.forEach(shortcut => {
+  wantedShortcuts.forEach(async (shortcut) => {
     if(Shortcut[shortcut] != undefined) {
       if((Shortcut[shortcut][1] && canWrite) || !Shortcut[shortcut][1]) {
         const divCard = document.createElement("div");
