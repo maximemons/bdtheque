@@ -1,4 +1,4 @@
-import { auth } from 'firebase-auth.js';
+import { auth } from './firebase-auth.js';
 import { signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
 // DOM Elements
