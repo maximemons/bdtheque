@@ -87,7 +87,7 @@ async function generateShortcutsFromPreferences(userPreferences) {
               (Shortcut[shortcut][0] == "ACHATSRECENTS" ? await countDocumentsWithWhere(Table.BDs, [{ field: "purchasedate", operator: "!=", value: null }, { field: "purchasedate", operator: "<", value: getDateTwoFullMonthsAgo().toISOString().split('T')[0] }]) : 
                 '?'));
           const text = (Shortcut[shortcut][0] == "BD" || Shortcut[shortcut][0] == "COLLECTIONS") ? Shortcut[shortcut][0] : 
-            (Shortcut[shortcut][0] == "ACHATSRECENTS" ? ("Achat(s) depuis " + new Date(new Date().setMonth(new Date().getMonth() - 2)).toLocaleString("fr-FR", { month: "long", year: "numeric" }) : ""));
+            (Shortcut[shortcut][0] == "ACHATSRECENTS" ? ("Achat(s) depuis " + new Date(new Date().setMonth(new Date().getMonth() - 2)).toLocaleString("fr-FR", { month: "long", year: "numeric" })) : "");
 
           divCard.innerHTML =`<i class="fas ${symbol}"></i><h4>${number}</h4><p>${text}</p>`;
         }
