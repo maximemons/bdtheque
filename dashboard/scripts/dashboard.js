@@ -1,5 +1,5 @@
-import { countDocuments, countDocumentsWithWhere } from '../scripts/firebase-db.js';
-import { getCurrentUser, logout } from '../scriptsfirebase-auth.js';
+import { countDocuments, countDocumentsWithWhere } from '../../scripts/firebase-db.js';
+import { getCurrentUser, logout } from '../../scripts/firebase-auth.js';
 
 getCurrentUser().then(async (user) => {
   if(!user) {
