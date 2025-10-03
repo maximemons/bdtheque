@@ -33,7 +33,7 @@ getCurrentUser().then(async (user) => {
     if(shortcut == Shortcuts.BD[0] || shortcut == Shortcuts.COLLECTIONS[0]){
       shortcuts.appendChild(generateShortcutCard(shortcut, await countDocuments(shortcut == Shortcuts.BD[0] ? CollectionsName.bds : CollectionsName.Collections)));
     } else if(shortcut == Shortcuts.ACHATSRECENTS[0]) {
-      shortcuts.appendChild(generateShortcutCard(shortcut, await countBoughtSinceTwoMonthsAgo(collectionName.bds)));
+      shortcuts.appendChild(generateShortcutCard(shortcut, await countBoughtSinceTwoMonthsAgo(CollectionName.bds)));
     } else if(shortcut == Shortcuts.AJOUT[0]) {
       shortcuts.appendChild(generateShortcutCard(shortcut));
     }
