@@ -78,10 +78,15 @@ async function countDocuments(collectionName) {
 }
 
 // COUNT: Compter les documents d'une collection avec un filtre where
-async function countDocumentsWithWhere(collectionName, field, operator, value) {
+async function countDocumentsWithWhere(collectionName, whereClauses) {
     await checkAuth();
     const coll = collection(db, collectionName);
-    const q = query(coll, where(field, operator, value));
+
+    let q = query(coll);
+    whereClauses.forEach(clause => {
+        q = query(q, where(clause.field, clause.operator, clause.value));
+    });
+
     const snapshot = await getCountFromServer(q);
     return snapshot.data().count;
 }

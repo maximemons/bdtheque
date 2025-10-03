@@ -49,7 +49,7 @@
                         <p id="userEmail"></p>
                     </div>
                 </div>
-                <button id="logoutBtn" class="btn-logout" onclick="logout()">
+                <button id="logoutBtn" class="btn-logout">
                     <i class="fas fa-sign-out-alt"></i> Se déconnecter
                 </button>
             </div>
@@ -93,8 +93,6 @@
         import { checkAuthAndRedirect } from '../scripts/auth-guard.js';
         checkAuthAndRedirect();
     </script>
-    <script src="scripts/objects.js"></script>
-    <script src="scripts/dbUtils.js"></script>
 
     <script src="https://unpkg.com/@zxing/library@0.18.6/umd/index.min.js"></script>
     <script src="scripts/scanner.js"></script>
