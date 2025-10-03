@@ -27,10 +27,13 @@ async function getAllDocuments(collectionName) {
 }
 
 // GET: Documents d'une collection avec un filtre where
-async function getDocumentsWithWhere(collectionName, field, operator, value) {
+async function getDocumentsWithWhere(collectionName, whereClauses) {
     await checkAuth();
     const coll = collection(db, collectionName);
-    const q = query(coll, where(field, operator, value));
+    let q = query(coll);
+    whereClauses.forEach(clause => {
+        q = query(q, where(clause.field, clause.operator, clause.value));
+    });
     const snapshot = await getDocs(q);
     return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 }
