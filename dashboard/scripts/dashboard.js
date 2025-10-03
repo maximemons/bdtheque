@@ -39,12 +39,8 @@ getCurrentUser().then(async (user) => {
 
   document.getElementById("searchBar").addEventListener("click", search);
 
-  //easterEggs ? 
-  if(Math.floor(Math.random() * 3) == 2) {
-    if(document.getElementsByClassName("avatar-cover").length > 0) {
-      let img = document.getElementsByClassName("avatar-cover")[0].classList.add("avatar-cover-easter-egg");  
-    }
-  }
+  //Init EasterEgg
+  initEasterEgg();
 });
 
 function getDisplayName(user, email) {
@@ -91,7 +87,7 @@ async function generateShortcutsFromPreferences(userPreferences) {
 
           divCard.innerHTML =`<i class="fas ${symbol}"></i><h4>${number}</h4><p>${text}</p>`;
         }
-        shortcuts.innerHTML += divCard;
+        shortcuts.appendChild(divCard);
       }
     }
   });
@@ -103,4 +99,28 @@ function getDateTwoFullMonthsAgo() {
     const targetMonth = currentMonth - 2;
     const targetYear = now.getFullYear();
     return new Date(targetYear, targetMonth, 1);
+}
+
+function initEasterEgg() {
+  if(document.getElementsByClassName("avatar-cover").length > 0) {
+      let img = document.getElementsByClassName("avatar-cover")[0].getElementsByTagName("img")[0];
+      img.addEventListener("click", function() {
+        let changeMonkey = Math.floor(Math.random() * 3) == 2;
+
+        this.style.transition = "transform 1s";
+        this.style.transform = "rotate(360deg)";
+
+        if(changeMonkey) {
+          this.setAttribute("_src", this.src);
+          this.src = "../img/avatar_custom.png";
+        }
+
+        setTimeout(() => { 
+          this.style.transform = "rotate(0deg)";
+          if(changeMonkey) {
+            this.src = this.getAttribute("_src");
+          }
+        }, 1000);
+      });
+    } 
 }
