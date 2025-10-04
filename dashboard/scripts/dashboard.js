@@ -1,6 +1,7 @@
 import { getDocumentById, countDocuments, countDocumentsWithWhere } from '../../scripts/firebase-db.js';
 import { getCurrentUser, logout } from '../../scripts/firebase-auth.js';
 import { Table, Shortcut } from '../../scripts/enums.js';
+import { Preferences } from '../../scripts/records.js';
 
 getCurrentUser().then(async (user) => {
   if(!user) {
@@ -37,7 +38,9 @@ getCurrentUser().then(async (user) => {
   //Init scanner
   initiateScanner("searchCamera", "closeCamera", "video", "overlay", "searchBarInput", function(){document.getElementById('searchBar').click();});//document.getElementById("searchBar").click());
 
-  //document.getElementById("searchBar").addEventListener("click", search);
+  //Init Search
+  document.getElementById("searchCateg").addEventListener("change", changeSearchSource(this));
+  document.getElementById("searchBarInput").addEventListener("click", search);
 
   //Init EasterEgg
   initEasterEgg();
@@ -101,6 +104,24 @@ function getDateTwoFullMonthsAgo() {
     return new Date(targetYear, targetMonth, 1);
 }
 
+function changeSearchSource(select) {
+  const searchInput = document.getElementById("searchBarInput");
+  if(select.value == "bd") {
+    searchInput.placeholder = "titre, numéro, année ou ISBN";
+  } else if(select.value == "") {
+    searchInput.placeholder = "";
+  } else {
+    searchInput.placeholder = "nom";
+  }
+}
+
+function search() {
+  const selectValue = document.getElementById("searchCateg").value;
+  const searchInputValue = document.getElementById("searchBarInput").value;
+
+  window.location = "";
+}
+
 function initEasterEgg() {
   if(document.getElementsByClassName("avatar-cover").length > 0) {
       let img = document.getElementsByClassName("avatar-cover")[0].getElementsByTagName("img")[0];
@@ -112,7 +133,7 @@ function initEasterEgg() {
 
         if(changeMonkey) {
           this.setAttribute("_src", this.src);
-          this.src = "../img/avatar_custom.png";
+          this.src = "img/avatar_custom.png";
         }
 
         setTimeout(() => { 

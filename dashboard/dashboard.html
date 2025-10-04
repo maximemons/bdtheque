@@ -16,28 +16,7 @@
 
     <div class="dashboard-container">
         <!-- Sidebar -->
-        <aside class="sidebar" id="sidebar">
-            <div class="logo">
-                <i class="fas fa-book"></i>
-                <span>BDthèque</span>
-            </div>
-            <ul class="nav-links">
-                <li class="selected-nav-link"><a href="dashboard.html"><i class="fas fa-home"></i>Accueil</a></li>
-                <li><a href="#"><i class="fas fa-folder-open"></i>Ma BDtheque</a>
-                    <ul>
-                        <li><a href="bds/bds.html"><i class="fas fa-book"></i>Mes BDs</a></li>
-                        <li><a href="#"><i class="fas fa-folder"></i>Mes Collections</a></li>
-                        <li><a href="#"><i class="fas fa-pencil"></i>Mes Editeurs</a></li>
-                    </ul>
-                </li>
-                <li><a href="#"><i class="fas fa-cog"></i>Paramètres</a>
-                    <ul>
-                        <li><a href="configure/myaccount.html"><i class="fas fa-user"></i>Mon compte</a></li>
-                        <li><a href="#"><i class="fas fa-users"></i>Autres comptes</a></li>
-                    </ul>
-                </li>
-            </ul>
-        </aside>
+        <aside class="sidebar" id="sidebar"></aside>
 
         <!-- Main Content -->
         <main class="main-content">
@@ -58,7 +37,7 @@
                 <div class="shortcut-card shortcut-card-full">
                     <h2>Rechercher</h2>
                     <div>
-                        <select id="searchCateg" onchange="changeSearchSubject(this.value)">
+                        <select id="searchCateg">
                             <option value="bd">BD</option>
                             <option value="collection">Collection</option>
                             <option value="editor">Éditeur</option>
@@ -94,9 +73,11 @@
         checkAuthAndRedirect();
     </script>
 
+    <script src="scripts/menu.js"></script>
+
     <script src="https://unpkg.com/@zxing/library@0.18.6/umd/index.min.js"></script>
     <script src="scripts/scanner.js"></script>
-    <script src="scripts/common.js"></script>
+    
     <script type="module" src="scripts/dashboard.js"></script>
 </body>
 </html>
