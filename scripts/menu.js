@@ -1,3 +1,5 @@
+import {  logout } from './firebase-auth.js';
+
 function generateMenu() {
 	const asideMenu = document.getElementById("sidebar");
 	asideMenu.innerHTML = `
@@ -22,7 +24,10 @@ function generateMenu() {
                     <li><a href="https://maximemons.github.io/bdtheque/parametres/autrescomptes.html"><i class="fas fa-users"></i>Autres comptes</a></li>
             	</ul>
         	</li>
-        </ul>`;
+        </ul>
+        <footer>
+        	<i id="menuLogout" class="fas fa-sign-out-alt"></i>
+        </footer>`;
 
     Array.from(document.getElementById("sidebar").getElementsByTagName("a")).forEach(a => {
     	if(a.href == window.location.href) {
@@ -40,6 +45,8 @@ function generateMenu() {
 	    sidebar.classList.add(classname);
 	  }
 	});
+
+	document.getElementById("menuLogout").addEventListener("click", logout);
 }
 
 generateMenu();
