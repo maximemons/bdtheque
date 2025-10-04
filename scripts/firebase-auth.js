@@ -24,7 +24,7 @@ function getCurrentUser() {
 async function logout() {
     try {
         await signOut(auth);
-        window.location.href = "index.html";
+        window.location.href = "https://maximemons.github.io/bdtheque/";
     } catch (error) {
         console.error("Erreur lors de la déconnexion :", error);
     }

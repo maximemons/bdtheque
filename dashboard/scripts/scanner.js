@@ -1,3 +1,5 @@
+import { * } 
+
 let scannerstartBtn;
 let scannerstopBtn;
 let scannervideo;

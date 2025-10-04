@@ -15,7 +15,6 @@ auth.onAuthStateChanged(async (user) => {
     document.getElementById("searchCamera").addEventListener("click", function(){ document.getElementById("contentVideo").style.display = "block"; });
 
     await initBdBooksUtils();
-    await initAddForm();
 
     const urlParams = new URLSearchParams(window.location.search);
     if(urlParams.has("search")){
@@ -23,7 +22,14 @@ auth.onAuthStateChanged(async (user) => {
     }else if(urlParams.has("add")){
       showAddBdForm();
       document.getElementById("isbn").value = urlParams.get("add");
+    }else if(urlParams.has("bd")){
+      Array.from(document.getElementsByClassName("shortcut-show")).forEach(e => e.classList.remove("shortcut-show"));
+      await displayBD(urlParams.get("bd"));
+      return;
     }
+
+    Array.from(document.getElementsByClassName("shortcut-search")).forEach(e => e.classList.remove("shortcut-search"));
+    await initAddForm();
 
     document.getElementById("searchBarInput").addEventListener("change", search);
     document.getElementById("searchBar").addEventListener("click", search);
@@ -31,6 +37,71 @@ auth.onAuthStateChanged(async (user) => {
     search();
   }
 });
+
+function backToList() {
+  window.location.href = window.location.origin + window.location.pathname;
+}
+
+function selectBd(idBd) {
+ window.location.href = window.location.origin + window.location.pathname + "?bd=" + idBd; 
+}
+
+async function displayBD(bdId) {
+  let currentBD = ALLBDS.find(bd => bd.id === decodeURI(bdId).replaceAll("%27", "'"));
+  if(currentBD == undefined) {
+    window.location.href = window.location.origin + window.location.pathname;
+    return;
+  }
+
+  let displayCollection = currentBD.object.fk_collection == undefined ? "" : 
+    (currentBD.object.fk_collection.specialedition == undefined ? currentBD.object.fk_collection.name : 
+      (currentBD.object.fk_collection.name + " : " + currentBD.object.fk_collection.specialedition));
+  let displayEdition = currentBD.object.fk_edition == undefined ? "" : currentBD.object.fk_edition.name;
+
+  document.getElementById("bdList").innerHTML = 
+  `<div class="bd-container-controls">
+      <button>
+        <i class="fas fa-pencil"></i>
+      </button>
+      <button>
+        <i class="fas fa-save"></i>
+      </button>
+   </div>
+   <div class="bd-container">
+      <div class="cover">
+        <img src="${currentBD.object.base_info.cover}" alt="Couverture de la BD">
+      </div>
+      <div class="details">
+        <h1 id="title">${currentBD.object.base_info.title}</h1>
+        <h5>Collection : ${displayCollection}</h5>
+        <h5>Edition : ${displayEdition}</h5>
+        <div class="info-grid">
+          <dt>ISBN</dt>
+          <dd id="isbn">${currentBD.object.base_info?.ISBN || ""}</dd>
+          <dt>Numéro</dt>
+          <dd id="number">${currentBD.object.base_info?.number || ""}</dd>
+          <dt>État</dt>
+          <dd id="state">${currentBD.object.base_info?.state || ""}</dd>
+          <dt>Année</dt>
+          <dd id="year">${currentBD.object.base_info?.year || ""}</dd>
+          <dt>Date d'achat</dt>
+          <dd id="purchasedate">${currentBD.object.purchesedate || ""}</dd>
+        </div>
+        <div class="section">
+          <h2>Détails supplémentaires</h2>
+          <div class="info-grid">
+            <dt>Édition spéciale</dt>
+            <dd id="goldedition">${currentBD.object.details?.goldedition ||""}</dd>
+            <dt>Spécialité</dt>
+            <dd id="special">${currentBD.object.details?.special ||""}</dd>
+            <dt>Côte</dt>
+            <dd id="reputation">${currentBD.object.details?.reputation ||""}</dd>
+          </div>
+        </div>
+      </div>
+  </div>`;
+
+}
 
 function displayBDs(bds) {
   let bdList = document.getElementById("bdList");
@@ -40,7 +111,7 @@ function displayBDs(bds) {
     return;
   }
 
-    bdList.innerHTML = "";
+  bdList.innerHTML = "";
 
   const grouped = {};
 
@@ -70,7 +141,7 @@ function displayBDs(bds) {
   // Générer le HTML
   let html = "";
   for (const [collectionName, bdList] of Object.entries(grouped)) {
-    html += `<div class="collection-block">`;
+    html += `<div class="collection-block"">`;
     html += `<h2>${collectionName}</h2>`;
     html += `<div class="bd-list">`;
     bdList.forEach(bd => {
@@ -80,7 +151,7 @@ function displayBDs(bds) {
       const cover = bd.object.base_info?.cover || "";
 
       html += `
-      <div class="bd-card">
+      <div class="bd-card" onclick="selectBd('${encodeURI(bd.id.replaceAll("'", "%27"))}')">
       <img src="${cover}" alt="${title}" class="bd-cover"/>
       <div class="bd-info">
       <h3>${number}${title}</h3>
@@ -149,7 +220,7 @@ async function initAddForm() {
     let bd = formToBd();
 
     await createBook(bd, collection, editeur);
-    window.location.href = window.location.origin + window.location.pathname;
+    backToList();
   });
 };
 

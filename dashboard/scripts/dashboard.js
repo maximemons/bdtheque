@@ -5,7 +5,7 @@ import { Preferences } from '../../scripts/records.js';
 
 getCurrentUser().then(async (user) => {
   if(!user) {
-    window.location.href = "../index.html";
+    window.location.href = "https://maximemons.github.io/bdtheque";
   }
   let userPreferences = await getDocumentById(Table.Preferences, user.email);
   if(userPreferences == undefined) {
@@ -133,7 +133,7 @@ function initEasterEgg() {
 
         if(changeMonkey) {
           this.setAttribute("_src", this.src);
-          this.src = "img/avatar_custom.png";
+          this.src = "../img/avatar_custom.png";
         }
 
         setTimeout(() => { 

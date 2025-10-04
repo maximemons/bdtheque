@@ -167,7 +167,7 @@
 
 /* Zone BD */
 .collection-block {
-  margin-top: 2rem;
+  margin-top  : 2rem;
   width: 100%;
 }
 
@@ -301,3 +301,64 @@
 #addBd.modal-content {
   margin: 1% auto;
 } 
+
+.shortcut-search, .shortcut-search *, .shortcut-show, .shortcut-show * {
+  display: none;
+}
+
+
+
+
+.bd-container, .bd-container-controls {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  padding: 20px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  width: 100%;
+}
+.bd-container-controls {
+  margin-top: 15px;
+}
+.bd-container .cover {
+  flex: 0 0 200px;
+  text-align: center;
+}
+.bd-container .cover img {
+  max-width: 100%;
+  border-radius: 4px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+.bd-container .details {
+  flex: 1;
+  min-width: 300px;
+}
+.bd-container h1, .bd-container h5  {
+  color: #2c3e50;
+  margin-top: 0;
+}
+.bd-container .info-grid {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 10px 20px;
+  margin: 20px 0;
+}
+.bd-container .info-grid dt {
+  font-weight: bold;
+  color: #7f8c8d;
+}
+.bd-container .info-grid dd {
+  margin: 0;
+}
+.bd-container .section {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #eee;
+}
+.bd-container .section h2 {
+  color: #3498db;
+  font-size: 1.2em;
+  margin-bottom: 10px;
+}

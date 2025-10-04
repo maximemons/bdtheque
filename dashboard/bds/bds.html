@@ -42,8 +42,8 @@
         <!-- Main Content -->
         <main class="main-content">
             <div class="shortcut-card shortcut-card-full">
-                <h2>Rechercher</h2>
-                <div>
+                <h2 class="shortcut-search">Rechercher</h2>
+                <div class="shortcut-search">
                     <input id="searchBarInput" type="text" placeholder="titre, numéro, année ou ISBN">
                     <button id="searchCamera" class="show-camera">
                         <i class="fas fa-camera"></i>
@@ -52,9 +52,15 @@
                         <i class="fas fa-search"></i>
                     </button>
                 </div>
-                <h2 style="margin-top:15px; border-top: 1px groove;">Ajouter une BD</h2>
-                <div>
+                <h2 style="margin-top:15px; border-top: 1px groove;" class="shortcut-search">Ajouter une BD</h2>
+                <div class="shortcut-search">
                     <button onclick="showAddBdForm()">+</button>
+                </div>
+                <h2 style="margin-top:15px;" class="shortcut-show">Retour à la liste</h2>
+                <div class="shortcut-show">
+                    <button onclick="backToList()">
+                        <i class="fas fa-arrow-left"></i>
+                    </button>
                 </div>
             </div>
             <main class="bd-list" id="bdList"></main>
