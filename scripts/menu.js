@@ -27,7 +27,6 @@ function generateMenu() {
     Array.from(document.getElementById("sidebar").getElementsByTagName("a")).forEach(a => {
     	if(a.href == window.location.href) {
     		a.parentElement.classList.add("selected-nav-link");
-    		break;
     	}
     });
 
