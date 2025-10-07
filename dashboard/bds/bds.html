@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mes BDS - BDthèque</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="../styles/common.css">
+    <link rel="stylesheet" href="styles/bds.css">
+</head>
+<body>
+    <!-- Header mobile (hamburger menu) -->
+    <header class="header-mobile">
+        <i class="fas fa-bars hamburger" id="hamburger" onclick="displayHamburgerMenu()"></i>
+    </header>
+
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="logo">
+                <i class="fas fa-book"></i>
+                <span>BDthèque</span>
+            </div>
+            <ul class="nav-links">
+                <li><a href="../dashboard.html"><i class="fas fa-home"></i>Accueil</a></li>
+                <li><a href="#"><i class="fas fa-folder-open"></i>Ma BDtheque</a>
+                    <ul>
+                        <li class="selected-nav-link"><a href="#"><i class="fas fa-book"></i>Mes BDs</a></li>
+                        <li><a href="#"><i class="fas fa-folder"></i>Mes Collections</a></li>
+                        <li><a href="#"><i class="fas fa-pencil"></i>Mes Editeurs</a></li>
+                    </ul>
+                </li>
+                <li ><a href="#"><i class="fas fa-cog"></i>Paramètres</a>
+                    <ul>
+                        <li><a href="../configure/myaccount.html"><i class="fas fa-user"></i>Mon compte</a></li>
+                        <li><a href="../configure/othersaccounts.html"><i class="fas fa-users"></i>Autres comptes</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="shortcut-card shortcut-card-full">
+                <h2 class="shortcut-search">Rechercher</h2>
+                <div class="shortcut-search">
+                    <input id="searchBarInput" type="text" placeholder="titre, numéro, année ou ISBN">
+                    <button id="searchCamera" class="show-camera">
+                        <i class="fas fa-camera"></i>
+                    </button>
+                    <button id="searchBar">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+                <h2 style="margin-top:15px; border-top: 1px groove;" class="shortcut-search">Ajouter une BD</h2>
+                <div class="shortcut-search">
+                    <button onclick="showAddBdForm()">+</button>
+                </div>
+                <h2 style="margin-top:15px;" class="shortcut-show">Retour à la liste</h2>
+                <div class="shortcut-show">
+                    <button onclick="backToList()">
+                        <i class="fas fa-arrow-left"></i>
+                    </button>
+                </div>
+            </div>
+            <main class="bd-list" id="bdList"></main>
+        </main>
+    </div>
+
+    <div id="modal" class="modal">
+        <div class="modal-content" id="contentVideo">
+            <div id="videoWrap" style="margin-top:12px">
+                <video id="video" autoplay muted playsinline></video>
+                <canvas id="overlay"></canvas>
+            </div>
+            <button id="closeCamera">
+                <i class="fas fa-window-close"></i>
+                Fermer
+            </button>
+        </div>
+        <div class="modal-content" id="addBd">
+            <form id="livre-form">
+              <h2>Base</h2>
+              <label for="isbn">ISBN *</label>
+              <input type="text" id="isbn" name="isbn" required placeholder="978-3-16-148410-0" onfocusout="getInfosFromISBN(this.value)">
+
+              <label for="collection">Collection</label>
+              <div class="autocomplete-container">
+                <input type="text" id="collection" name="collection" placeholder="Tapez une collection">
+                <ul id="collection-suggestions"></ul>
+              </div>
+              <label for="editeur">Collection spéciale ?</label>
+              <input type="text" id="edition_speciale" name="edition_speciale" placeholder="HS, BEST-OF...">
+
+              <label for="editeur">Éditeur</label>
+              <div class="autocomplete-container">
+                <input type="text" id="editeur" name="editeur" placeholder="Tapez un éditeur">
+                <ul id="editeur-suggestions"></ul>
+              </div>
+
+              <label for="numero">Numéro</label>
+              <input type="number" id="numero" name="numero" min="1" placeholder="1">
+
+              <label for="titre">Titre *</label>
+              <input type="text" id="titre" name="titre" required>
+
+              <label for="annee">Année</label>
+              <input type="number" id="annee" name="annee" min="0">
+
+              <label for="couverture">Couverture</label>
+              <input type="file" id="couverture" name="couverture" accept="image/*" onchange="previewImageForm()">
+              <img id="couvertureImage" style="max-height: 200px"/>
+
+              <label for="etat">État</label>
+              <select id="etat" name="etat">
+                <option value="">-- Sélectionner --</option>
+              </select>
+
+              <h2>Détail</h2>
+              <label for="edition_or">Édition spéciale ?</label>
+              <input type="text" id="edition_or" name="edition_or" placeholder="Édition Or, Édition 20 ans...">
+
+              <label for="specialite">Spécialité ?</label>
+              <input type="text" id="specialite" name="specialite" placeholder="Dédicacé, Couverture souple...">
+
+              <label for="cote">Côte</label>
+              <input type="text" id="cote" name="cote">
+
+              <h2>Autre</h2>
+              <label for="date_achat">Date d'achat</label>
+              <input type="date" id="date_achat" name="date_achat">
+              <div>
+                  <button class="formAction" type="submit">Créer</button>
+                  <button class="formAction" type="cancel" onclick="hideAddBdForm()">Annuler</button>
+              </div>
+              
+            </form>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore-compat.js"></script>
+
+    <script src="https://unpkg.com/@zxing/library@0.18.6/umd/index.min.js"></script>
+    <script src="../scripts/scanner.js"></script>
+    
+    <script src="../../scripts/firebaseConfig.js"></script>
+    <script src="../scripts/objects.js"></script>
+    <script src="../scripts/dbUtils.js"></script>
+    <script src="../scripts/common.js"></script>
+    <script src="../scripts/openlibrary.js"></script>
+     <script src="../scripts/dbBooksUtils.js"></script>
+    <script src="scripts/bds.js"></script>
+</body>
+</html>

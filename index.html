@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connexion - BDthèque</title>
+    <link rel="stylesheet" href="styles/index.css" />
+</head>
+<body>
+    <div class="login-container">
+        <h1 id="myEgg" class="egg">BDthèque</h1>
+        <div id="error" class="error"></div>
+        <div id="success" class="success"></div>
+        <input type="email" id="email" placeholder="Email" />
+        <input type="password" id="password" placeholder="Mot de passe" />
+        <button id="loginBtn">Se connecter</button>
+		<a id="forgetPwd" href="" onclick="resetPassword(event)">Mot de passe oublié ?</a>
+    </div>
+
+    <script type="module" src="./scripts/index.js"></script>
+</body>
+</html>

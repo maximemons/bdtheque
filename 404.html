@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>404 - Page introuvable</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Comic+Neue:wght@700&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Comic Neue', cursive;
+    background: #F9F2DF;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  #mainContent {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    width: 100%;
+    text-align: center;
+    padding: 1rem;
+  }
+
+  h2 {
+    margin-bottom: 1rem;
+    font-size: 2rem;
+  }
+
+  img {
+    max-width: 100%;
+    max-height: 60vh; /* évite que l'image dépasse trop */
+    object-fit: contain;
+    margin-bottom: 1rem;
+  }
+
+  button {
+    padding: 0.7rem 1.5rem;
+    border: none;
+    border-radius: 8px;
+    background: #ff8a65;
+    color: white;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: 0.2s;
+  }
+
+  button:hover {
+    background: #ff7043;
+  }
+</style>
+</head>
+<body>
+  <div id="mainContent">
+    <h2>404 - Page introuvable</h2>
+    <img src="https://maximemons.github.io/bdtheque/img/404.png" alt="404 image"/>
+    <button onclick="location.href='https://maximemons.github.io/bdtheque'">Retour à l'accueil</button>
+  </div>
+</body>
+</html>

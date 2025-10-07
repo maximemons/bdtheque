@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mon compte - BDthèque</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="../styles/common.css">
+    <link rel="stylesheet" href="styles/moncompte.css">
+</head>
+<body>
+    <!-- Header mobile (hamburger menu) -->
+    <header class="header-mobile">
+        <i class="fas fa-bars hamburger" id="hamburger" onclick="displayHamburgerMenu()"></i>
+    </header>
+
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar"></aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <form id="registrationForm">
+                <h3>Informations personnelles</h3>
+                <div class="form-header">
+                    <div class="avatar-group">
+                        <label style="display: block; text-align: center; margin-bottom: 5px; font-weight: bold;">Avatar</label>
+                        <div class="avatar-upload" onclick="document.getElementById('avatarInput').click()">
+                            <span class="plus">+</span>
+                            <img id="avatarPreview" style="display: none;">
+                            <button type="button" class="delete-btn" onclick="deleteAvatar(event)">×</button>
+                        </div>
+                        <input type="file" id="avatarInput" accept="image/*" onchange="previewAvatar(event)">
+                    </div>
+                    <div class="names-group">
+                        <div class="form-group">
+                            <label for="firstname">Prénom</label>
+                            <input type="text" id="firstname">
+                        </div>
+                        <div class="form-group">
+                            <label for="lastname">Nom</label>
+                            <input type="text" id="lastname">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="checkbox-group">
+                    <h3>Raccourcis</h3>
+                    <div class="shortcuts" id="shortcuts-container">
+                        
+                    </div>
+                </div>
+
+                <button type="submit">
+                    <i class="fas fa-save"></i> Enregistrer</button>
+            </form>
+        </main>
+    </div>
+
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <h4 style="padding-bottom: 15px" id="modalText"></h4>
+            <button id="modalValidate">J'ai compris !</button>
+        </div>
+    </div>
+
+    <script type="module">
+        import { checkAuthAndRedirect } from '../scripts/auth-guard.js';
+        checkAuthAndRedirect();
+    </script>
+    <script type="module" src="../scripts/menu.js"></script>
+
+    <!-- <script type="module" src="scripts/moncompte.js"></script> -->
+
+    <script type="module" src="scripts/dashboard.js"></script>
+</body>
+</html>

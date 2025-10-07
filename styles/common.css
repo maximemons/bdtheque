@@ -1,0 +1,247 @@
+:root {
+  --primary: #4361ee;
+  --secondary: #3f37c9;
+  --light: #f8f9fa;
+  --dark: #212529;
+  --success: #4cc9f0;
+  --warning: #f8961e;
+  --danger: #f72585;
+  --border-radius: 8px;
+  --box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f5f7fa;
+  color: var(--dark);
+  line-height: 1.6;
+}
+
+.header-mobile {
+  display: none;
+  background: white;
+  padding: 1rem;
+  box-shadow: var(--box-shadow);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+.hamburger {
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+/* Sidebar */
+.sidebar {
+  width: 250px;
+  background: white;
+  box-shadow: var(--box-shadow);
+  position: fixed;
+  height: 100vh;
+  padding: 1.5rem;
+  z-index: 100;
+  transform: translateX(0);
+  transition: transform 0.3s ease;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  margin-bottom: 2rem;
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: var(--primary);
+}
+
+.logo i {
+  margin-right: 0.5rem;
+}
+
+.nav-links,
+.nav-links ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.nav-links li {
+  margin-bottom: 0.5rem;
+  position: relative;
+}
+
+.nav-links a {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  color: var(--dark);
+  padding: 0.75rem;
+  border-radius: var(--border-radius);
+  transition: all 0.2s;
+}
+
+.nav-links a:hover, .selected-nav-link, .selected-nav-link a{
+  background-color: var(--light);
+  color: var(--primary);
+}
+
+.nav-links a i {
+  margin-right: 0.75rem;
+  width: 20px;
+  text-align: center;
+}
+
+aside footer {
+  position: absolute;
+  bottom: 10px;
+  text-align: center;
+  width: 100%;
+  color:  red;
+}
+
+/* Style pour les sous-menus */
+.nav-links ul {
+  display: block;
+  padding-left: 1.5rem;
+  margin-top: 0.5rem;
+}
+
+/* Main Content */
+.main-content {
+  margin-left: 250px;
+  padding: 1.5rem;
+  width: calc(100% - 250px);
+}
+
+/* Mobile layout */
+@media (max-width: 650px) {
+  .header-mobile {
+    display: block;
+  }
+  .sidebar {
+    width: 80%;
+    transform: translateX(-100%);
+  }
+  .sidebar.open {
+    transform: translateX(0);
+  }
+  .main-content {
+    margin-left: 0;
+    width: 100%;
+    padding: 1rem;
+  }
+
+  #searchCamera.show-camera {
+    display: inherit !important;
+  }
+}
+
+/* User Card */
+.user-card {
+  background: white;
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+  padding: 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+.user-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.user-avatar {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background-color: var(--primary);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  margin-right: 1rem;
+  flex-shrink: 0;
+}
+
+.user-info h3 {
+  margin-bottom: 0.25rem;
+  font-size: 1.1rem;
+}
+
+.user-info p {
+  color: #6c757d;
+  font-size: 0.9rem;
+}
+
+.user-avatar .avatar-cover {
+  width: 50px;
+  height: 50px;
+  overflow: hidden;
+  border-radius: 50%;
+}
+
+.user-avatar .avatar-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.avatar-cover-easter-egg img {
+  cursor: url('../img/avatar_cursor.png') 16 16, auto;
+}
+
+/* Bouton logout dans user-card */
+.btn-logout, #closeCamera {
+  background: none;
+  border: 1px solid #eee;
+  color: var(--danger);
+  font-size: 0.9rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem;
+  border-radius: var(--border-radius);
+  transition: all 0.2s;
+  width: 100%;
+}
+
+.btn-logout:hover, #closeCamera:hover {
+  background: rgba(247, 37, 133, 0.1);
+  border-color: rgba(247, 37, 133, 0.2);
+}
+
+.btn-logout i {
+  margin-right: 0.5rem;
+}
+
+/* Modal */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    overflow: auto;
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: 15% auto;
+    padding: 20px;
+    border-radius: 8px;
+    width: 80%;
+    max-width: 600px;
+    text-align: center;
+}
