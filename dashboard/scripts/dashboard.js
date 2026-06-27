@@ -6,6 +6,7 @@ import { Preferences } from '../../scripts/records.js';
 getCurrentUser().then(async (user) => {
   if(!user) {
     window.location.href = "https://maximemons.github.io/bdtheque";
+    return;
   }
   let userPreferences = await getDocumentById(Table.Preferences, user.email);
   if(userPreferences == undefined) {
@@ -40,7 +41,10 @@ getCurrentUser().then(async (user) => {
 
   //Init Search
   document.getElementById("searchCateg").addEventListener("change", changeSearchSource);
-  document.getElementById("searchBarInput").addEventListener("click", search);
+  document.getElementById("searchBar").addEventListener("click", search);
+  document.getElementById("searchBarInput").addEventListener("keydown", (e) => {
+    if (e.key === "Enter") search();
+  });
 
   //Init EasterEgg
   initEasterEgg();
@@ -118,9 +122,21 @@ function changeSearchSource() {
 
 function search() {
   const selectValue = document.getElementById("searchCateg").value;
-  const searchInputValue = document.getElementById("searchBarInput").value;
+  const searchInputValue = document.getElementById("searchBarInput").value.trim();
 
-  window.location = "";
+  if (searchInputValue === "") return;
+
+  const encoded = encodeURIComponent(searchInputValue);
+
+  if (selectValue === "bd") {
+    window.location.href = "bds/bds.html?search=" + encoded;
+  } else if (selectValue === "collection") {
+    // TODO: page de listing des collections pas encore créée (mabdtheque/collections/collections.html)
+    console.warn("La page de recherche par collection n'existe pas encore.");
+  } else if (selectValue === "editor") {
+    // TODO: page de listing des éditeurs pas encore créée (mabdtheque/editeurs/editeurs.html)
+    console.warn("La page de recherche par éditeur n'existe pas encore.");
+  }
 }
 
 function initEasterEgg() {

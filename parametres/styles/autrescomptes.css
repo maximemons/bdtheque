@@ -1,0 +1,60 @@
+.hint {
+    color: #6c757d;
+    margin-bottom: 20px;
+}
+
+.add-account-form {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 25px;
+}
+
+.add-account-form input[type="email"] {
+    flex: 1;
+    min-width: 220px;
+    padding: 8px;
+    box-sizing: border-box;
+}
+
+.checkbox-inline {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: normal;
+    white-space: nowrap;
+}
+
+.accounts-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.account-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: white;
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    padding: 0.9rem 1.25rem;
+    margin-bottom: 0.75rem;
+}
+
+.accounts-list .empty {
+    color: #6c757d;
+    background: none;
+    box-shadow: none;
+    padding: 0;
+}
+
+.revoke-btn {
+    background: var(--danger);
+    padding: 6px 10px;
+}
+
+.revoke-btn:hover {
+    opacity: 0.85;
+}

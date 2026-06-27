@@ -2,7 +2,8 @@ const Table = {
   Preferences: 'preferences',
   Collections: 'collections',
   Editeurs: 'editeurs',
-  BDs: 'bds'
+  BDs: 'bds',
+  Sharing: 'sharing'
 };
 
 const State = {

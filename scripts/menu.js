@@ -1,4 +1,4 @@
-import {  logout } from './firebase-auth.js';
+import { logout } from './firebase-auth.js';
 
 function generateMenu() {
 	const asideMenu = document.getElementById("sidebar");
@@ -13,9 +13,9 @@ function generateMenu() {
             </li>
             <li><a href="#"><i class="fas fa-folder-open"></i>Ma BDtheque</a>
                 <ul>
-                	<li><a href="https://maximemons.github.io/bdtheque/mabdtheque/bds/bds.html"><i class="fas fa-book"></i>Mes BDs</a></li>
-                    <li><a href="https://maximemons.github.io/bdtheque/mabdtheque/collections/collections.html"><i class="fas fa-folder"></i>Mes Collections</a></li>
-                    <li><a href="https://maximemons.github.io/bdtheque/mabdtheque/editeurs/editeurs.html"><i class="fas fa-pencil"></i>Mes Editeurs</a></li>
+                	<li><a href="https://maximemons.github.io/bdtheque/dashboard/bds/bds.html"><i class="fas fa-book"></i>Mes BDs</a></li>
+                    <li class="disabled-nav-link"><a href="#" title="Bientôt disponible"><i class="fas fa-folder"></i>Mes Collections</a></li>
+                    <li class="disabled-nav-link"><a href="#" title="Bientôt disponible"><i class="fas fa-pencil"></i>Mes Editeurs</a></li>
                 </ul>
             </li>
             <li><a href="#"><i class="fas fa-cog"></i>Paramètres</a>
@@ -30,7 +30,7 @@ function generateMenu() {
         </footer>`;
 
     Array.from(document.getElementById("sidebar").getElementsByTagName("a")).forEach(a => {
-    	if(a.href == window.location.href) {
+    	if(a.href.split("?")[0] == window.location.href.split("?")[0]) {
     		a.parentElement.classList.add("selected-nav-link");
     	}
     });

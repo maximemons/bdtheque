@@ -1,41 +1,60 @@
-const auth = firebase.auth();
-const db = firebase.firestore();
+import { checkAuthAndRedirect } from '../../../scripts/auth-guard.js';
+import { getDocumentById } from '../../../scripts/firebase-db.js';
+import { Table, State } from '../../../scripts/enums.js';
+import { Preferences, Editor, Collection, BD } from '../../../scripts/records.js';
+import { fetchBDFromISBN } from '../../../scripts/openlibrary.js';
+import {
+  initBdBooksUtils,
+  createBook,
+  searchBD,
+  getAllBDs,
+  getAllCollections,
+  getAllEditions
+} from '../../scripts/dbBooksUtils.js';
+import { getCurrentUser, logout } from '../../../scripts/firebase-auth.js';
 
-auth.onAuthStateChanged(async (user) => {
-  if(!user) {
-    window.location.href = "../index.html";
-  } else {
-    let userPreferences = await getElement(CollectionsName.Preferences, user.email);
-    if(userPreferences == undefined) {
-      userPreferences = new Preferences();
-    }
+checkAuthAndRedirect();
 
-    //Init scanner
-    initiateScanner("searchCamera", "closeCamera", "video", "overlay", "searchBarInput", function(){document.getElementById('searchBar').click();});
-    document.getElementById("searchCamera").addEventListener("click", function(){ document.getElementById("contentVideo").style.display = "block"; });
-
-    await initBdBooksUtils();
-
-    const urlParams = new URLSearchParams(window.location.search);
-    if(urlParams.has("search")){
-      document.getElementById("searchBarInput").value = urlParams.get("search");
-    }else if(urlParams.has("add")){
-      showAddBdForm();
-      document.getElementById("isbn").value = urlParams.get("add");
-    }else if(urlParams.has("bd")){
-      Array.from(document.getElementsByClassName("shortcut-show")).forEach(e => e.classList.remove("shortcut-show"));
-      await displayBD(urlParams.get("bd"));
-      return;
-    }
-
-    Array.from(document.getElementsByClassName("shortcut-search")).forEach(e => e.classList.remove("shortcut-search"));
-    await initAddForm();
-
-    document.getElementById("searchBarInput").addEventListener("change", search);
-    document.getElementById("searchBar").addEventListener("click", search);
-
-    search();
+getCurrentUser().then(async (user) => {
+  if (!user) {
+    return; // checkAuthAndRedirect() prend déjà en charge la redirection
   }
+
+  let userPreferences = await getDocumentById(Table.Preferences, user.email).catch(() => undefined);
+  if (userPreferences == undefined) {
+    userPreferences = new Preferences();
+  }
+
+  // Init scanner code-barres
+  initiateScanner("searchCamera", "closeCamera", "video", "overlay", "searchBarInput", function () {
+    document.getElementById('searchBar').click();
+  });
+  document.getElementById("searchCamera").addEventListener("click", function () {
+    document.getElementById("contentVideo").style.display = "block";
+  });
+
+  await initBdBooksUtils();
+
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.has("search")) {
+    document.getElementById("searchBarInput").value = urlParams.get("search");
+  } else if (urlParams.has("add")) {
+    showAddBdForm();
+    document.getElementById("isbn").value = urlParams.get("add");
+  } else if (urlParams.has("bd")) {
+    Array.from(document.getElementsByClassName("shortcut-show")).forEach(e => e.classList.remove("shortcut-show"));
+    await displayBD(urlParams.get("bd"));
+    return;
+  }
+
+  Array.from(document.getElementsByClassName("shortcut-search")).forEach(e => e.classList.remove("shortcut-search"));
+  initAddForm();
+
+  document.getElementById("searchBarInput").addEventListener("change", search);
+  document.getElementById("searchBar").addEventListener("click", search);
+  document.getElementById("logoutBtn")?.addEventListener("click", logout);
+
+  search();
 });
 
 function backToList() {
@@ -43,23 +62,23 @@ function backToList() {
 }
 
 function selectBd(idBd) {
- window.location.href = window.location.origin + window.location.pathname + "?bd=" + idBd; 
+  window.location.href = window.location.origin + window.location.pathname + "?bd=" + idBd;
 }
 
 async function displayBD(bdId) {
-  let currentBD = ALLBDS.find(bd => bd.id === decodeURI(bdId).replaceAll("%27", "'"));
-  if(currentBD == undefined) {
+  const currentBD = getAllBDs().find(bd => bd.id === decodeURI(bdId).replaceAll("%27", "'"));
+  if (currentBD == undefined) {
     window.location.href = window.location.origin + window.location.pathname;
     return;
   }
 
-  let displayCollection = currentBD.object.fk_collection == undefined ? "" : 
-    (currentBD.object.fk_collection.specialedition == undefined ? currentBD.object.fk_collection.name : 
+  const displayCollection = currentBD.object.fk_collection == undefined ? "" :
+    (currentBD.object.fk_collection.specialedition == undefined ? currentBD.object.fk_collection.name :
       (currentBD.object.fk_collection.name + " : " + currentBD.object.fk_collection.specialedition));
-  let displayEdition = currentBD.object.fk_edition == undefined ? "" : currentBD.object.fk_edition.name;
+  const displayEdition = currentBD.object.fk_edition == undefined ? "" : currentBD.object.fk_edition.name;
 
-  document.getElementById("bdList").innerHTML = 
-  `<div class="bd-container-controls">
+  document.getElementById("bdList").innerHTML =
+    `<div class="bd-container-controls">
       <button>
         <i class="fas fa-pencil"></i>
       </button>
@@ -69,10 +88,10 @@ async function displayBD(bdId) {
    </div>
    <div class="bd-container">
       <div class="cover">
-        <img src="${currentBD.object.base_info.cover}" alt="Couverture de la BD">
+        <img src="${currentBD.object.base_info?.cover || ''}" alt="Couverture de la BD">
       </div>
       <div class="details">
-        <h1 id="title">${currentBD.object.base_info.title}</h1>
+        <h1 id="title">${currentBD.object.base_info?.title || ''}</h1>
         <h5>Collection : ${displayCollection}</h5>
         <h5>Edition : ${displayEdition}</h5>
         <div class="info-grid">
@@ -85,44 +104,44 @@ async function displayBD(bdId) {
           <dt>Année</dt>
           <dd id="year">${currentBD.object.base_info?.year || ""}</dd>
           <dt>Date d'achat</dt>
-          <dd id="purchasedate">${currentBD.object.purchesedate || ""}</dd>
+          <dd id="purchasedate">${currentBD.object.purchasedate || ""}</dd>
         </div>
         <div class="section">
           <h2>Détails supplémentaires</h2>
           <div class="info-grid">
             <dt>Édition spéciale</dt>
-            <dd id="goldedition">${currentBD.object.details?.goldedition ||""}</dd>
+            <dd id="goldedition">${currentBD.object.details?.goldedition || ""}</dd>
             <dt>Spécialité</dt>
-            <dd id="special">${currentBD.object.details?.special ||""}</dd>
+            <dd id="special">${currentBD.object.details?.special || ""}</dd>
             <dt>Côte</dt>
-            <dd id="reputation">${currentBD.object.details?.reputation ||""}</dd>
+            <dd id="reputation">${currentBD.object.details?.reputation || ""}</dd>
           </div>
         </div>
       </div>
   </div>`;
 
+  document.querySelector(".bd-container-controls button:first-child")
+    ?.addEventListener("click", () => { /* TODO: édition de la BD */ });
 }
 
 function displayBDs(bds) {
-  let bdList = document.getElementById("bdList");
+  const bdList = document.getElementById("bdList");
 
-  if(bds == undefined || bds == null || bds.length == 0){
+  if (bds == undefined || bds == null || bds.length == 0) {
     bdList.innerHTML = `<div class="collection-block"><h2>La liste est vide</h2></div>`;
     return;
   }
 
-  bdList.innerHTML = "";
-
   const grouped = {};
 
   bds.sort((a, b) => {
-    const numA = parseInt(a.object.base_info.number, 10);
-    const numB = parseInt(b.object.base_info.number, 10);
+    const numA = parseInt(a.object.base_info?.number, 10) || 0;
+    const numB = parseInt(b.object.base_info?.number, 10) || 0;
 
     if (numA !== numB) return numA - numB;
 
-    const titleA = a.object.base_info.title.toLowerCase();
-    const titleB = b.object.base_info.title.toLowerCase();
+    const titleA = (a.object.base_info?.title || "").toLowerCase();
+    const titleB = (b.object.base_info?.title || "").toLowerCase();
 
     return titleA.localeCompare(titleB);
   });
@@ -138,39 +157,49 @@ function displayBDs(bds) {
     grouped[key].push(bd);
   });
 
-  // Générer le HTML
-  let html = "";
-  for (const [collectionName, bdList] of Object.entries(grouped)) {
-    html += `<div class="collection-block"">`;
-    html += `<h2>${collectionName}</h2>`;
-    html += `<div class="bd-list">`;
-    bdList.forEach(bd => {
-      const number = (bd.object.base_info?.number) ? bd.object.base_info?.number + "- " : ""; 
+  bdList.innerHTML = "";
+
+  for (const [collectionName, bdsInGroup] of Object.entries(grouped)) {
+    const block = document.createElement("div");
+    block.classList.add("collection-block");
+
+    const heading = document.createElement("h2");
+    heading.textContent = collectionName;
+    block.appendChild(heading);
+
+    const listDiv = document.createElement("div");
+    listDiv.classList.add("bd-list");
+
+    bdsInGroup.forEach(bd => {
+      const number = bd.object.base_info?.number ? bd.object.base_info.number + "- " : "";
       const title = bd.object.base_info?.title || "Sans titre";
       const year = bd.object.base_info?.year || "";
       const cover = bd.object.base_info?.cover || "";
 
-      html += `
-      <div class="bd-card" onclick="selectBd('${encodeURI(bd.id.replaceAll("'", "%27"))}')">
-      <img src="${cover}" alt="${title}" class="bd-cover"/>
-      <div class="bd-info">
-      <h3>${number}${title}</h3>
-      <p>${year}</p>
-      </div>
-      </div>
-      `;
-    });
-    html += `</div>`;
-    html += `</div>`;
-  }
+      const card = document.createElement("div");
+      card.classList.add("bd-card");
+      card.addEventListener("click", () => selectBd(bd.id));
 
-  bdList.innerHTML = html;
+      card.innerHTML = `
+        <img src="${cover}" alt="${title}" class="bd-cover"/>
+        <div class="bd-info">
+          <h3>${number}${title}</h3>
+          <p>${year}</p>
+        </div>`;
+
+      listDiv.appendChild(card);
+    });
+
+    block.appendChild(listDiv);
+    bdList.appendChild(block);
+  }
 }
 
 function showAddBdForm() {
   document.getElementById("addBd").style.display = "block";
   document.getElementById("modal").style.display = "block";
 }
+
 function hideAddBdForm() {
   document.getElementById("addBd").style.display = "none";
   document.getElementById("modal").style.display = "none";
@@ -181,48 +210,52 @@ function hideAddBdForm() {
   document.getElementById("couvertureImage").src = "";
 }
 
-async function initAddForm() {
-  let etats = Object.keys(Etat);
-  const etatsJson = [];
+function initAddForm() {
+  const etats = Object.keys(State);
+  const etatsJson = etats.map(e => ({
+    value: State[e],
+    libelle: e.replace(/([A-Z])/g, (match, p1, offset) => (offset === 0 ? p1 : ' ' + p1))
+  }));
 
-  etats.forEach(e => {
-    etatsJson.push({
-      value: Etat[e],
-      libelle : e.replace(/([A-Z])/g, (match, p1, offset) => {return offset === 0 ? p1 : ' ' + p1;})
-    });
+  const etatSelect = document.getElementById("etat");
+  etatsJson.forEach(e => {
+    const opt = document.createElement("option");
+    opt.value = e.value;
+    opt.textContent = e.libelle;
+    etatSelect.appendChild(opt);
   });
 
-  const fillSelect = () => {
-    const etatSelect = document.getElementById("etat");
-    etatsJson.forEach(e => {
-      const opt = document.createElement("option");
-      opt.value = e.value;
-      opt.textContent = e.libelle;
-      etatSelect.appendChild(opt);
-    });
-  };
-  fillSelect();
+  setupAutocomplete("collection", getAllCollections().map(c => c.object.name).filter(Boolean), "collection-suggestions");
+  setupAutocomplete("editeur", getAllEditions().map(e => e.object.name).filter(Boolean), "editeur-suggestions");
 
-  setupAutocomplete("collection", ALLCOLLECTIONS.map(c => c.object.name), "collection-suggestions");
-  setupAutocomplete("editeur", ALLEDITIONS.map(e => e.object.name), "editeur-suggestions");
+  document.getElementById("isbn").addEventListener("input", formatIsbnInput);
+  document.getElementById("isbn").addEventListener("focusout", (e) => getInfosFromISBN(e.target.value));
+  document.getElementById("livre-form").addEventListener("submit", onSubmitAddBdForm);
+  document.getElementById("couverture").addEventListener("change", previewImageForm);
+  document.getElementById("cancelAddBd").addEventListener("click", hideAddBdForm);
+  document.getElementById("openAddBdForm").addEventListener("click", showAddBdForm);
+  document.getElementById("backToListBtn").addEventListener("click", backToList);
+}
 
-  // Validation ISBN simple
-  const form = document.getElementById("livre-form");
-  form.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const isbn = document.getElementById("isbn").value;
-    Array.from(document.getElementsByClassName("formAction")).forEach(btn => {btn.disabled = true;});
+async function onSubmitAddBdForm(e) {
+  e.preventDefault();
+  Array.from(document.getElementsByClassName("formAction")).forEach(btn => { btn.disabled = true; });
 
-    let collection = new Collection(
-      document.getElementById("collection").value.trim() == "" ? undefined : document.getElementById("collection").value.trim(),
-      document.getElementById("edition_speciale").value.trim() == "" ? undefined : document.getElementById("edition_speciale").value.trim());
-    let editeur = new Editor(document.getElementById("editeur").value.trim() == "" ? undefined : document.getElementById("editeur").value.trim());
-    let bd = formToBd();
+  try {
+    const collection = new Collection(
+      document.getElementById("collection").value.trim() || undefined,
+      document.getElementById("edition_speciale").value.trim() || undefined
+    );
+    const editeur = new Editor(document.getElementById("editeur").value.trim() || undefined);
+    const bd = formToBd();
 
     await createBook(bd, collection, editeur);
+    hideAddBdForm();
     backToList();
-  });
-};
+  } finally {
+    Array.from(document.getElementsByClassName("formAction")).forEach(btn => { btn.disabled = false; });
+  }
+}
 
 function setupAutocomplete(inputId, dataArray, listId) {
   dataArray = [...new Set(dataArray)];
@@ -259,57 +292,61 @@ function setupAutocomplete(inputId, dataArray, listId) {
   });
 }
 
-const isbnInput = document.getElementById("isbn");
+function formatIsbnInput(event) {
+  const input = event.target;
+  let value = input.value.replace(/[^0-9Xx]/g, ''); // on enlève tout sauf chiffres et X
 
-isbnInput.addEventListener("input", (input) => {
-    let value = input.value.replace(/[^0-9Xx]/g, ''); // on enlève tout sauf chiffres et X
-
-    if (value.length === 10) {
-        // ISBN-10
-        value = value.toUpperCase();
-        // Format standard : 1-234-56789-X
-        let formatted = value.replace(/^(\d{1,5})(\d{1,7})(\d{1,7})([\dX])$/, '$1-$2-$3-$4');
-        input.value = formatted;
-      } else if (value.length === 13) {
-        // ISBN-13
-        let formatted = value.replace(/^(\d{3})(\d{1,5})(\d{1,7})(\d{1,7})(\d)$/, '$1-$2-$3-$4-$5');
-        input.value = formatted;
-      } else {
-        // Valeur non valide, on ne touche pas
-        console.warn('ISBN invalide ou longueur incorrecte');
-      }
-    });
+  if (value.length === 10) {
+    // ISBN-10
+    value = value.toUpperCase();
+    input.value = value.replace(/^(\d{1,5})(\d{1,7})(\d{1,7})([\dX])$/, '$1-$2-$3-$4');
+  } else if (value.length === 13) {
+    // ISBN-13
+    input.value = value.replace(/^(\d{3})(\d{1,5})(\d{1,7})(\d{1,7})(\d)$/, '$1-$2-$3-$4-$5');
+  }
+  // Sinon : ISBN incomplet, on laisse l'utilisateur continuer à taper sans reformater.
+}
 
 async function getInfosFromISBN(isbnValue) {
-  let infos = await fetchBDFromISBN(isbnValue.replaceAll("-", ""));
-  BDtoForm(infos);
+  if (!isbnValue || isbnValue.trim() === "") return;
+  const infos = await fetchBDFromISBN(isbnValue.replaceAll("-", ""));
+  if (infos) {
+    BDtoForm(infos);
+  }
 }
 
 function BDtoForm(bd) {
   document.getElementById("collection").value = bd.fk_collection || "";
   document.getElementById("editeur").value = bd.fk_edition || "";
-  document.getElementById("numero").value = bd.base_info?.numero || "";
+  document.getElementById("numero").value = bd.base_info?.number || "";
   document.getElementById("titre").value = bd.base_info?.title || "";
   document.getElementById("annee").value = bd.base_info?.year || "";
   document.getElementById("couvertureImage").src = bd.base_info?.cover || "";
 }
 
 function formToBd() {
+  const val = id => {
+    const v = document.getElementById(id).value.trim();
+    return v === "" ? undefined : v;
+  };
+
+  const coverSrc = document.getElementById("couvertureImage").src.trim();
+  const cover = (coverSrc === "" || coverSrc.indexOf("file://") === 0) ? undefined : coverSrc;
+
   return new BD(
     undefined,
     undefined,
-    document.getElementById("isbn").value.trim() == "" ? undefined : document.getElementById("isbn").value.trim().replaceAll("-", ""),
-    document.getElementById("numero").value.trim() == "" ? undefined : document.getElementById("numero").value.trim(),
-    document.getElementById("titre").value.trim() == "" ? undefined : document.getElementById("titre").value.trim(),
-    document.getElementById("annee").value.trim() == "" ? undefined : document.getElementById("annee").value.trim(),
-    document.getElementById("etat").value.trim() == "" ? undefined : document.getElementById("etat").value.trim(),
-    document.getElementById("couvertureImage").src.trim() == "" ? undefined : 
-      (document.getElementById("couvertureImage").src.trim().indexOf("file://") == 0 ? undefined : document.getElementById("couvertureImage").src.trim()),
-    document.getElementById("cote").value.trim() == "" ? undefined : document.getElementById("cote").value.trim(),
-    document.getElementById("edition_or").value.trim() == "" ? undefined : document.getElementById("edition_or").value.trim(),
-    document.getElementById("specialite").value.trim() == "" ? undefined : document.getElementById("specialite").value.trim(),
-    document.getElementById("date_achat").value.trim() == "" ? undefined : document.getElementById("date_achat").value.trim()
-    );
+    val("isbn")?.replaceAll("-", ""),
+    val("numero"),
+    val("titre"),
+    val("annee"),
+    val("etat"),
+    cover,
+    val("cote"),
+    val("edition_or"),
+    val("specialite"),
+    val("date_achat")
+  );
 }
 
 function previewImageForm() {
@@ -329,10 +366,10 @@ function previewImageForm() {
 }
 
 function search() {
-  let inputSearch = document.getElementById("searchBarInput").value;
+  const inputSearch = document.getElementById("searchBarInput").value;
 
-  if(inputSearch.trim == "") {
-    displayBDs(ALLBDS);
+  if (inputSearch.trim() === "") {
+    displayBDs(getAllBDs());
     return;
   }
   displayBDs(searchBD(inputSearch));

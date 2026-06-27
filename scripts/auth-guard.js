@@ -6,7 +6,7 @@ const auth = getAuth(app);
 function checkAuthAndRedirect() {
     onAuthStateChanged(auth, (user) => {
         if (!user) {
-            window.location.href = "index.html";
+            window.location.href = "https://maximemons.github.io/bdtheque/";
         }
     });
 }

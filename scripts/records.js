@@ -42,6 +42,25 @@ class BD {
 		};
 		this.purchasedate = purchasedate;
 	}
+
+	// Construit une instance BD à partir d'un objet "plat" (ex: retour API OpenLibrary).
+	// Évite les erreurs liées à l'ordre des paramètres positionnels.
+	static fromPartial({
+		fk_collection = undefined,
+		fk_edition = undefined,
+		ISBN = undefined,
+		number = undefined,
+		title = undefined,
+		year = undefined,
+		state = undefined,
+		cover = undefined,
+		reputation = undefined,
+		goldedition = undefined,
+		special = undefined,
+		purchasedate = undefined
+	} = {}) {
+		return new BD(fk_collection, fk_edition, ISBN, number, title, year, state, cover, reputation, goldedition, special, purchasedate);
+	}
 }
 
 export { Preferences, Editor, Collection, BD };

@@ -91,6 +91,16 @@ body {
   color: var(--primary);
 }
 
+.disabled-nav-link a {
+  color: #aaa;
+  cursor: not-allowed;
+}
+
+.disabled-nav-link a:hover {
+  background-color: transparent;
+  color: #aaa;
+}
+
 .nav-links a i {
   margin-right: 0.75rem;
   width: 20px;
