@@ -656,6 +656,109 @@ aside footer i:hover {
   cursor: not-allowed;
 }
 
+/* Badge "lecture seule" (compte invité) */
+.readonly-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+  border: 1px solid var(--line);
+  border-radius: var(--border-radius);
+  padding: 0.4rem 0.75rem;
+  background: var(--paper);
+}
+
+/* Collection affichée sur une carte BD */
+.bd-collection {
+  font-size: 0.78rem;
+  color: var(--spine-green);
+  font-weight: 500;
+  margin: 0;
+}
+
+/* Chargement / "Charger plus" */
+.bd-list-loader {
+  width: 100%;
+  text-align: center;
+  padding: 1.5rem;
+  color: var(--ink-soft);
+  font-size: 0.95rem;
+}
+
+.load-more-btn {
+  display: block;
+  margin: 1.5rem auto 0;
+  padding: 0.6rem 1.5rem;
+  background: var(--paper-raised);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  color: var(--ink-soft);
+  font-size: 0.92rem;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.load-more-btn:hover {
+  background: var(--light);
+  border-color: var(--cover-red);
+  color: var(--cover-red);
+}
+
+.load-more-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Statut de recherche / résultats */
+.search-status {
+  width: 100%;
+  padding: 1.25rem;
+  color: var(--ink-soft);
+  font-size: 0.95rem;
+}
+
+/* Section "Étendre la recherche" */
+.expand-search-section {
+  width: 100%;
+  margin-top: 1.5rem;
+  padding: 1.1rem 1.25rem;
+  border: 1px dashed var(--line);
+  border-radius: var(--border-radius-lg);
+  background: var(--paper);
+}
+
+.expand-hint {
+  font-size: 0.88rem;
+  color: var(--ink-soft);
+  margin-bottom: 0.75rem;
+}
+
+.expand-search-btn {
+  padding: 0.55rem 1rem;
+  background: var(--spine-green);
+  color: white;
+  border: none;
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  font-size: 0.92rem;
+  transition: opacity 0.15s;
+}
+
+.expand-search-btn:hover {
+  opacity: 0.88;
+}
+
+.expand-search-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.expand-done {
+  font-size: 0.9rem;
+  color: var(--spine-green);
+}
+
 /* Badge d'état (TBE, Neuf...) façon étiquette de bibliothèque tamponnée */
 .state-badge {
   display: inline-block;

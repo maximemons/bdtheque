@@ -1,6 +1,7 @@
 import { checkAuthAndRedirect } from '../../scripts/auth-guard.js';
 import { getDocumentById, setDocument } from '../../scripts/firebase-db.js';
 import { getCurrentUser } from '../../scripts/firebase-auth.js';
+import { resolveOwnership } from '../../scripts/ownership.js';
 import { Table, Shortcut } from '../../scripts/enums.js';
 import { Preferences } from '../../scripts/records.js';
 
@@ -10,11 +11,10 @@ let userPreferences;
 let userMail;
 
 getCurrentUser().then(async (user) => {
-  if (!user) {
-    return; // checkAuthAndRedirect() prend déjà en charge la redirection
-  }
+  if (!user) return;
 
-  userMail = user.email;
+  const { ownerId } = await resolveOwnership(user.email);
+  userMail = ownerId;
   userPreferences = await getDocumentById(Table.Preferences, user.email).catch(() => undefined);
   if (userPreferences == undefined) {
     userPreferences = new Preferences();

@@ -1,4 +1,4 @@
-import { getFirestore, collection, getCountFromServer, query, where, getDocs, doc, getDoc, setDoc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getFirestore, collection, getCountFromServer, query, where, orderBy, limit, startAfter, getDocs, doc, getDoc, setDoc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { app } from "./firebase-auth.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
@@ -34,6 +34,53 @@ async function getDocumentsWithWhere(collectionName, whereClauses) {
     whereClauses.forEach(clause => {
         q = query(q, where(clause.field, clause.operator, clause.value));
     });
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+}
+
+// GET: Une page de documents, filtrée et triée, avec pagination par curseur.
+// whereClauses : [{field, operator, value}, ...]
+// orderByField : champ de tri (obligatoire pour une pagination stable)
+// pageSize : nombre de documents à charger
+// afterDoc : le dernier "rawDoc" de la page précédente (voir rawDoc ci-dessous), ou undefined pour la 1ère page.
+// Retourne { items: [{id, ...data}], rawDocs: [QueryDocumentSnapshot], hasMore: boolean }
+// rawDocs doit être conservé par l'appelant et repassé en tant que afterDoc (son dernier élément)
+// pour charger la page suivante.
+async function getDocumentsPage(collectionName, whereClauses, orderByField, pageSize, afterDoc) {
+    await checkAuth();
+    const coll = collection(db, collectionName);
+    let q = query(coll);
+    whereClauses.forEach(clause => {
+        q = query(q, where(clause.field, clause.operator, clause.value));
+    });
+    q = query(q, orderBy(orderByField));
+    if (afterDoc) {
+        q = query(q, startAfter(afterDoc));
+    }
+    q = query(q, limit(pageSize));
+
+    const snapshot = await getDocs(q);
+    const items = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+    return {
+        items,
+        rawDocs: snapshot.docs,
+        hasMore: snapshot.docs.length === pageSize
+    };
+}
+
+// GET: Documents dont orderByField commence par "prefix" (recherche "préfixe", native Firestore,
+// rapide même sur de grosses collections car elle s'appuie sur l'index du champ).
+// N'attrape PAS les correspondances "contient" (ex: "prefix"="aru" ne trouvera pas "Naruto").
+async function getDocumentsByPrefix(collectionName, whereClauses, orderByField, prefix, pageSize = 50) {
+    await checkAuth();
+    const coll = collection(db, collectionName);
+    let q = query(coll);
+    whereClauses.forEach(clause => {
+        q = query(q, where(clause.field, clause.operator, clause.value));
+    });
+    q = query(q, orderBy(orderByField), where(orderByField, '>=', prefix), where(orderByField, '<', prefix + '\uf8ff'), limit(pageSize));
+
     const snapshot = await getDocs(q);
     return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 }
@@ -98,6 +145,8 @@ export {
     db,
     getAllDocuments,
     getDocumentsWithWhere,
+    getDocumentsPage,
+    getDocumentsByPrefix,
     getDocumentById,
     setDocument,
     updateDocument,

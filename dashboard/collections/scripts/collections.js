@@ -1,43 +1,45 @@
 import { checkAuthAndRedirect } from '../../../scripts/auth-guard.js';
 import { Collection } from '../../../scripts/records.js';
+import { getCurrentUser } from '../../../scripts/firebase-auth.js';
+import { resolveOwnership } from '../../../scripts/ownership.js';
 import {
   initBdBooksUtils,
-  getAllCollections,
-  getAllBDs,
+  loadNextCollectionPage,
+  getLoadedCollections,
+  getCollectionHasMore,
   createCollection,
   renameCollection,
   deleteCollection,
-  countBDsInCollection
+  countBDsInCollection,
+  loadBDsForCollection
 } from '../../scripts/dbBooksUtils.js';
-import { getCurrentUser } from '../../../scripts/firebase-auth.js';
 
 checkAuthAndRedirect();
 
 let editingCollectionId = null;
 
 getCurrentUser().then(async (user) => {
-  if (!user) {
-    return; // checkAuthAndRedirect() prend déjà en charge la redirection
-  }
+  if (!user) return;
 
-  await initBdBooksUtils();
+  const { ownerId, canWrite } = await resolveOwnership(user.email);
+  initBdBooksUtils(ownerId, canWrite);
+
   initForm();
 
   const urlParams = new URLSearchParams(window.location.search);
-  if (urlParams.has("search")) {
-    document.getElementById("searchBarInput").value = urlParams.get("search");
-  } else if (urlParams.has("collection")) {
+  if (urlParams.has("collection")) {
     Array.from(document.getElementsByClassName("shortcut-show")).forEach(e => e.classList.remove("shortcut-show"));
-    displayCollectionDetail(urlParams.get("collection"));
+    await displayCollectionDetail(urlParams.get("collection"));
     return;
   }
 
   Array.from(document.getElementsByClassName("shortcut-search")).forEach(e => e.classList.remove("shortcut-search"));
 
   document.getElementById("searchBarInput").addEventListener("change", search);
+  document.getElementById("searchBarInput").addEventListener("keydown", e => { if (e.key === "Enter") search(); });
   document.getElementById("searchBar").addEventListener("click", search);
 
-  search();
+  await loadMoreCollections();
 });
 
 function backToList() {
@@ -46,6 +48,81 @@ function backToList() {
 
 function selectCollection(collectionId) {
   window.location.href = window.location.origin + window.location.pathname + "?collection=" + encodeURIComponent(collectionId);
+}
+
+async function loadMoreCollections() {
+  const btn = document.getElementById("loadMoreBtn");
+  if (btn) btn.disabled = true;
+
+  const list = document.getElementById("collectionsList");
+  let loader = document.getElementById("listLoader");
+  if (!loader) {
+    loader = document.createElement("div");
+    loader.id = "listLoader";
+    loader.className = "bd-list-loader";
+    loader.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Chargement...`;
+    list.appendChild(loader);
+  }
+
+  const { items, hasMore } = await loadNextCollectionPage();
+  // Les comptages sont async, on les résout en parallèle
+  const counts = await Promise.all(
+    getLoadedCollections().map(c => countBDsInCollection(c.id))
+  );
+  renderCollectionList(getLoadedCollections(), counts, getCollectionHasMore());
+}
+
+function renderCollectionList(collections, counts, hasMore) {
+  const list = document.getElementById("collectionsList");
+  list.innerHTML = "";
+
+  if (!collections || collections.length === 0) {
+    list.innerHTML = `<div class="empty">Aucune collection pour le moment.</div>`;
+    return;
+  }
+
+  const grid = document.createElement("div");
+  grid.classList.add("bd-list");
+
+  collections.forEach((collectionEntry, i) => {
+    const displayName = collectionEntry.object.specialedition
+      ? `${collectionEntry.object.name} : ${collectionEntry.object.specialedition}`
+      : collectionEntry.object.name;
+    const count = counts[i] ?? "…";
+
+    const card = document.createElement("div");
+    card.classList.add("bd-card", "collection-card");
+    card.addEventListener("click", () => selectCollection(collectionEntry.id));
+    card.innerHTML = `
+      <div class="collection-card-icon"><i class="fas fa-layer-group"></i></div>
+      <div class="bd-info">
+        <h3>${displayName}</h3>
+        <p>${count} BD</p>
+      </div>`;
+    grid.appendChild(card);
+  });
+
+  list.appendChild(grid);
+
+  if (hasMore) {
+    const btn = document.createElement("button");
+    btn.id = "loadMoreBtn";
+    btn.className = "load-more-btn";
+    btn.innerHTML = `<i class="fas fa-chevron-down"></i> Charger plus`;
+    btn.addEventListener("click", loadMoreCollections);
+    list.appendChild(btn);
+  }
+}
+
+function search() {
+  const query = document.getElementById("searchBarInput").value.trim().toLowerCase();
+  const all = getLoadedCollections();
+  const filtered = query === "" ? all : all.filter(c => (c.object.name || "").toLowerCase().includes(query));
+
+  // Pour la recherche on re-calcule les counts sur le sous-ensemble filtré
+  Promise.all(filtered.map(c => countBDsInCollection(c.id))).then(counts => {
+    renderCollectionList(filtered, counts, false); // pas de "charger plus" en mode recherche
+  });
 }
 
 function initForm() {
@@ -63,10 +140,8 @@ function showForm() {
 function hideForm() {
   document.getElementById("addCollection").style.display = "none";
   document.getElementById("modal").style.display = "none";
-
   document.getElementById("collectionName").value = "";
   document.getElementById("collectionSpecial").value = "";
-
   editingCollectionId = null;
   document.getElementById("formTitle").textContent = "Ajouter une collection";
   document.querySelector('#collection-form button[type="submit"]').textContent = "Créer";
@@ -75,10 +150,8 @@ function hideForm() {
 function openEditForm(collectionEntry) {
   editingCollectionId = collectionEntry.id;
   showForm();
-
   document.getElementById("formTitle").textContent = "Modifier la collection";
   document.querySelector('#collection-form button[type="submit"]').textContent = "Enregistrer";
-
   document.getElementById("collectionName").value = collectionEntry.object.name || "";
   document.getElementById("collectionSpecial").value = collectionEntry.object.specialedition || "";
 }
@@ -86,26 +159,20 @@ function openEditForm(collectionEntry) {
 async function onSubmitForm(e) {
   e.preventDefault();
   Array.from(document.getElementsByClassName("formAction")).forEach(btn => { btn.disabled = true; });
-
   try {
     const collection = new Collection(
       document.getElementById("collectionName").value.trim() || undefined,
       document.getElementById("collectionSpecial").value.trim() || undefined
     );
-
     if (editingCollectionId) {
-      const idBeingEdited = editingCollectionId;
-      await renameCollection(idBeingEdited, collection);
+      const id = editingCollectionId;
+      await renameCollection(id, collection);
       hideForm();
-      selectCollection(idBeingEdited);
+      selectCollection(id);
     } else {
       const newId = await createCollection(collection);
       hideForm();
-      if (newId) {
-        selectCollection(newId);
-      } else {
-        backToList();
-      }
+      newId ? selectCollection(newId) : backToList();
     }
   } finally {
     Array.from(document.getElementsByClassName("formAction")).forEach(btn => { btn.disabled = false; });
@@ -113,28 +180,28 @@ async function onSubmitForm(e) {
 }
 
 async function onDeleteCollection(collectionEntry) {
-  const count = countBDsInCollection(collectionEntry.id);
-  const warning = count > 0
-    ? `${count} BD seront détachées de cette collection (elles ne seront pas supprimées). `
-    : "";
-  if (!window.confirm(`${warning}Supprimer définitivement la collection « ${collectionEntry.object.name} » ?`)) {
-    return;
-  }
-
+  const count = await countBDsInCollection(collectionEntry.id);
+  const warning = count > 0 ? `${count} BD seront détachées de cette collection (elles ne seront pas supprimées). ` : "";
+  if (!window.confirm(`${warning}Supprimer définitivement la collection « ${collectionEntry.object.name} » ?`)) return;
   await deleteCollection(collectionEntry.id);
   backToList();
 }
 
-function displayCollectionDetail(collectionId) {
+async function displayCollectionDetail(collectionId) {
   const decodedId = decodeURIComponent(collectionId);
-  const collectionEntry = getAllCollections().find(c => c.id === decodedId);
-
-  if (collectionEntry == undefined) {
-    backToList();
-    return;
+  // Charger la collection si elle n'est pas encore dans le cache local
+  let collectionEntry = getLoadedCollections().find(c => c.id === decodedId);
+  if (!collectionEntry) {
+    const { loadNextCollectionPage: _ } = await import('../../scripts/dbBooksUtils.js');
+    // On recharge les collections jusqu'à la trouver ou être à court
+    while (!collectionEntry && getCollectionHasMore()) {
+      await loadNextCollectionPage();
+      collectionEntry = getLoadedCollections().find(c => c.id === decodedId);
+    }
   }
+  if (!collectionEntry) { backToList(); return; }
 
-  const bdsInCollection = getAllBDs().filter(bd => bd.object.fk_collection_id === decodedId);
+  const bdsInCollection = await loadBDsForCollection(decodedId);
   const displayName = collectionEntry.object.specialedition
     ? `${collectionEntry.object.name} : ${collectionEntry.object.specialedition}`
     : collectionEntry.object.name;
@@ -162,73 +229,18 @@ function displayCollectionDetail(collectionId) {
         const title = bd.object.base_info?.title || "Sans titre";
         const year = bd.object.base_info?.year || "";
         const cover = bd.object.base_info?.cover || "";
-
         const card = document.createElement("div");
         card.classList.add("bd-card");
         card.addEventListener("click", () => {
           window.location.href = "../bds/bds.html?bd=" + encodeURIComponent(bd.id);
         });
-
         card.innerHTML = `
           <img src="${cover}" alt="${title}" class="bd-cover"/>
-          <div class="bd-info">
-            <h3>${number}${title}</h3>
-            <p>${year}</p>
-          </div>`;
-
+          <div class="bd-info"><h3>${number}${title}</h3><p>${year}</p></div>`;
         bdListDiv.appendChild(card);
       });
   }
 
   document.getElementById("editCollectionBtn").addEventListener("click", () => openEditForm(collectionEntry));
   document.getElementById("deleteCollectionBtn").addEventListener("click", () => onDeleteCollection(collectionEntry));
-}
-
-function displayCollections(collections) {
-  const list = document.getElementById("collectionsList");
-
-  if (collections == undefined || collections.length === 0) {
-    list.innerHTML = `<div class="collection-block"><h2>La liste est vide</h2></div>`;
-    return;
-  }
-
-  list.innerHTML = "";
-  const grid = document.createElement("div");
-  grid.classList.add("bd-list");
-
-  collections
-    .sort((a, b) => (a.object.name || "").localeCompare(b.object.name || ""))
-    .forEach(collectionEntry => {
-      const displayName = collectionEntry.object.specialedition
-        ? `${collectionEntry.object.name} : ${collectionEntry.object.specialedition}`
-        : collectionEntry.object.name;
-      const count = countBDsInCollection(collectionEntry.id);
-
-      const card = document.createElement("div");
-      card.classList.add("bd-card", "collection-card");
-      card.addEventListener("click", () => selectCollection(collectionEntry.id));
-      card.innerHTML = `
-        <div class="collection-card-icon"><i class="fas fa-layer-group"></i></div>
-        <div class="bd-info">
-          <h3>${displayName}</h3>
-          <p>${count} BD</p>
-        </div>`;
-
-      grid.appendChild(card);
-    });
-
-  list.appendChild(grid);
-}
-
-function search() {
-  const inputSearch = document.getElementById("searchBarInput").value.trim().toLowerCase();
-
-  if (inputSearch === "") {
-    displayCollections(getAllCollections());
-    return;
-  }
-
-  displayCollections(getAllCollections().filter(c =>
-    (c.object.name || "").toLowerCase().includes(inputSearch)
-  ));
 }

@@ -1,9 +1,36 @@
-import { getAllDocuments, setDocument, updateDocument, deleteDocument } from '../../scripts/firebase-db.js';
+import {
+  getDocumentsPage,
+  getDocumentsByPrefix,
+  getDocumentsWithWhere,
+  getDocumentById,
+  setDocument,
+  updateDocument,
+  deleteDocument,
+  countDocumentsWithWhere
+} from '../../scripts/firebase-db.js';
 import { Table } from '../../scripts/enums.js';
 
-let ALLCOLLECTIONS = [];
-let ALLEDITIONS = [];
-let ALLBDS = [];
+const PAGE_SIZE = 30;
+
+let OWNER_ID = undefined;
+let CAN_WRITE = false;
+
+// Caches "déjà chargé" — pas la totalité des données, juste ce qu'on a demandé jusqu'ici.
+let LOADED_COLLECTIONS = [];
+let LOADED_EDITIONS = [];
+let LOADED_BDS = [];
+
+// Curseurs de pagination Firestore
+let bdCursor = undefined;
+let bdHasMore = true;
+let collectionCursor = undefined;
+let collectionHasMore = true;
+let editeurCursor = undefined;
+let editeurHasMore = true;
+
+// Curseur pour la recherche étendue
+let expandCursor = undefined;
+let expandExhausted = false;
 
 function generateShortUUID(length = 8) {
   return [...Array(length)]
@@ -11,260 +38,405 @@ function generateShortUUID(length = 8) {
     .join('');
 }
 
-function findIdByCollection(arr, criteria) {
-  const item = arr.find(
-    (el) =>
-      el.object.name === criteria.name &&
-      (el.object.specialedition === criteria.specialedition)
-  );
-  return item ? item.id : undefined;
+function ownerClause() {
+  return [{ field: "ownerId", operator: "==", value: OWNER_ID }];
 }
 
-function findIdByEdition(arr, criteria) {
-  const item = arr.find((el) =>
-    Object.entries(criteria).every(([key, value]) => el.object[key] === value)
-  );
-  return item ? item.id : undefined;
+// Initialise le contexte (propriétaire effectif + droit d'écriture) et réinitialise les caches/curseurs.
+function initBdBooksUtils(ownerId, canWriteFlag) {
+  OWNER_ID = ownerId;
+  CAN_WRITE = canWriteFlag;
+  LOADED_COLLECTIONS = [];
+  LOADED_EDITIONS = [];
+  LOADED_BDS = [];
+  bdCursor = undefined;
+  bdHasMore = true;
+  collectionCursor = undefined;
+  collectionHasMore = true;
+  editeurCursor = undefined;
+  editeurHasMore = true;
+  expandCursor = undefined;
+  expandExhausted = false;
 }
 
-// Retrouve (ou crée) l'id de la collection et de l'édition correspondant aux objets fournis.
-// Mutates ALLCOLLECTIONS / ALLEDITIONS en mémoire si une création a lieu.
+function isCanWrite() {
+  return CAN_WRITE;
+}
+
+function ensureWritable() {
+  if (!CAN_WRITE) {
+    throw new Error("Ce compte n'a pas le droit de modifier cette BDthèque (accès en lecture seule).");
+  }
+}
+
+// Remplace fk_collection/fk_edition (ids) par les objets complets, en fetchant au besoin.
+async function enrichBDs(bds) {
+  const missingCollectionIds = [...new Set(
+    bds.map(bd => bd.fk_collection).filter(id => id && !LOADED_COLLECTIONS.some(c => c.id === id))
+  )];
+  const missingEditionIds = [...new Set(
+    bds.map(bd => bd.fk_edition).filter(id => id && !LOADED_EDITIONS.some(e => e.id === id))
+  )];
+
+  await Promise.all(missingCollectionIds.map(async id => {
+    const doc = await getDocumentById(Table.Collections, id).catch(() => undefined);
+    if (doc) LOADED_COLLECTIONS.push({ id, object: doc });
+  }));
+  await Promise.all(missingEditionIds.map(async id => {
+    const doc = await getDocumentById(Table.Editeurs, id).catch(() => undefined);
+    if (doc) LOADED_EDITIONS.push({ id, object: doc });
+  }));
+
+  return bds.map(bdRaw => {
+    const collectionId = bdRaw.fk_collection;
+    const editionId = bdRaw.fk_edition;
+    const object = { ...bdRaw };
+    object.fk_collection_id = collectionId;
+    object.fk_edition_id = editionId;
+    object.fk_collection = LOADED_COLLECTIONS.find(c => c.id === collectionId)?.object || null;
+    object.fk_edition = LOADED_EDITIONS.find(e => e.id === editionId)?.object || null;
+    return { id: bdRaw.id, object };
+  });
+}
+
+// --- Chargement par lots ---
+
+async function loadNextBdPage() {
+  if (!bdHasMore) return { items: [], hasMore: false };
+
+  const { items, rawDocs, hasMore } = await getDocumentsPage(
+    Table.BDs, ownerClause(), "base_info.title", PAGE_SIZE, bdCursor
+  );
+
+  bdCursor = rawDocs[rawDocs.length - 1];
+  bdHasMore = hasMore;
+
+  const enriched = await enrichBDs(items);
+  LOADED_BDS.push(...enriched);
+
+  return { items: enriched, hasMore: bdHasMore };
+}
+
+async function loadNextCollectionPage() {
+  if (!collectionHasMore) return { items: [], hasMore: false };
+
+  const { items, rawDocs, hasMore } = await getDocumentsPage(
+    Table.Collections, ownerClause(), "name", PAGE_SIZE, collectionCursor
+  );
+
+  collectionCursor = rawDocs[rawDocs.length - 1];
+  collectionHasMore = hasMore;
+
+  const entries = items.map(doc => ({ id: doc.id, object: doc }));
+  // Dédoublonner : ne pas ajouter si déjà en cache (possible via enrichBDs)
+  entries.forEach(e => {
+    if (!LOADED_COLLECTIONS.some(c => c.id === e.id)) LOADED_COLLECTIONS.push(e);
+  });
+
+  return { items: entries, hasMore: collectionHasMore };
+}
+
+async function loadNextEditeurPage() {
+  if (!editeurHasMore) return { items: [], hasMore: false };
+
+  const { items, rawDocs, hasMore } = await getDocumentsPage(
+    Table.Editeurs, ownerClause(), "name", PAGE_SIZE, editeurCursor
+  );
+
+  editeurCursor = rawDocs[rawDocs.length - 1];
+  editeurHasMore = hasMore;
+
+  const entries = items.map(doc => ({ id: doc.id, object: doc }));
+  entries.forEach(e => {
+    if (!LOADED_EDITIONS.some(ed => ed.id === e.id)) LOADED_EDITIONS.push(e);
+  });
+
+  return { items: entries, hasMore: editeurHasMore };
+}
+
+// --- Recherche ---
+
+// Recherche rapide côté serveur : BD dont le titre OU l'ISBN commence par "prefix".
+async function searchBdByPrefix(prefix) {
+  const cleanPrefix = prefix.trim();
+  if (cleanPrefix === "") return [];
+
+  const [byTitle, byIsbn] = await Promise.all([
+    getDocumentsByPrefix(Table.BDs, ownerClause(), "base_info.title", cleanPrefix, 50),
+    getDocumentsByPrefix(Table.BDs, ownerClause(), "base_info.ISBN", cleanPrefix.replaceAll("-", ""), 50)
+  ]);
+
+  const merged = [...byTitle];
+  byIsbn.forEach(doc => {
+    if (!merged.some(d => d.id === doc.id)) merged.push(doc);
+  });
+
+  return enrichBDs(merged);
+}
+
+// Réinitialise le curseur de recherche étendue (appeler avant chaque nouvelle recherche).
+function resetExpandSearch() {
+  expandCursor = undefined;
+  expandExhausted = false;
+}
+
+// Recherche étendue "contient" — scanne un lot de PAGE_SIZE BD, filtre en mémoire.
+// Retourne { matches, exhausted } ; appeler en boucle jusqu'à exhausted=true ou résultats suffisants.
+// onBatchChecked(count) est appelé après chaque lot pour afficher la progression.
+async function expandSearchNextBatch(searchQuery, onBatchChecked) {
+  if (expandExhausted) return { matches: [], exhausted: true };
+
+  const { items, rawDocs, hasMore } = await getDocumentsPage(
+    Table.BDs, ownerClause(), "base_info.title", PAGE_SIZE, expandCursor
+  );
+
+  expandCursor = rawDocs[rawDocs.length - 1];
+  expandExhausted = !hasMore;
+
+  const needle = searchQuery.replaceAll("-", "").toLowerCase().trim();
+  const matchingRaw = items.filter(bd => {
+    const haystack = [
+      bd.base_info?.title,
+      bd.base_info?.ISBN,
+      String(bd.base_info?.number ?? ''),
+      String(bd.base_info?.year ?? '')
+    ].join(' ').replaceAll("-", "").toLowerCase();
+    return haystack.includes(needle);
+  });
+
+  if (onBatchChecked) onBatchChecked(items.length);
+
+  const matches = await enrichBDs(matchingRaw);
+  return { matches, exhausted: expandExhausted };
+}
+
+// --- Création / édition / suppression ---
+
+async function findCollectionId(COLLECTION) {
+  if (COLLECTION.name == undefined) return undefined;
+  const clauses = [...ownerClause(), { field: "name", operator: "==", value: COLLECTION.name }];
+  const matches = await getDocumentsWithWhere(Table.Collections, clauses);
+  const exact = matches.find(m => m.specialedition === COLLECTION.specialedition);
+  return exact?.id;
+}
+
+async function findEditeurId(EDITION) {
+  if (EDITION.name == undefined) return undefined;
+  const clauses = [...ownerClause(), { field: "name", operator: "==", value: EDITION.name }];
+  const matches = await getDocumentsWithWhere(Table.Editeurs, clauses);
+  return matches[0]?.id;
+}
+
 async function resolveCollectionAndEdition(COLLECTION, EDITION) {
   let collectionId = undefined;
   let editionId = undefined;
 
   if (COLLECTION.name != undefined) {
-    collectionId = findIdByCollection(ALLCOLLECTIONS, COLLECTION);
+    collectionId = await findCollectionId(COLLECTION);
     if (collectionId == undefined) {
       collectionId = `${COLLECTION.name}:${COLLECTION.specialedition}:${generateShortUUID()}`;
-      await setDocument(Table.Collections, collectionId, COLLECTION);
-      ALLCOLLECTIONS.push({ id: collectionId, object: { ...COLLECTION } });
+      await setDocument(Table.Collections, collectionId, { ...COLLECTION, ownerId: OWNER_ID });
+      LOADED_COLLECTIONS.push({ id: collectionId, object: { ...COLLECTION, ownerId: OWNER_ID } });
     }
   }
   if (EDITION.name != undefined) {
-    editionId = findIdByEdition(ALLEDITIONS, EDITION);
+    editionId = await findEditeurId(EDITION);
     if (editionId == undefined) {
       editionId = `${EDITION.name}:${generateShortUUID()}`;
-      await setDocument(Table.Editeurs, editionId, EDITION);
-      ALLEDITIONS.push({ id: editionId, object: { ...EDITION } });
+      await setDocument(Table.Editeurs, editionId, { ...EDITION, ownerId: OWNER_ID });
+      LOADED_EDITIONS.push({ id: editionId, object: { ...EDITION, ownerId: OWNER_ID } });
     }
   }
 
   return { collectionId, editionId };
 }
 
-// Crée (si besoin) la collection et l'édition liées, puis la BD elle-même.
-// Retourne l'id du document BD créé.
 async function createBook(BD, COLLECTION, EDITION) {
+  ensureWritable();
   const { collectionId, editionId } = await resolveCollectionAndEdition(COLLECTION, EDITION);
 
   BD.fk_collection = collectionId;
   BD.fk_edition = editionId;
+  BD.ownerId = OWNER_ID;
 
   const bdId = `${BD.base_info?.title || ''}:${BD.base_info?.number || ''}:${BD.base_info?.year || ''}:${BD.base_info?.ISBN || ''}:${generateShortUUID()}`;
-
   await setDocument(Table.BDs, bdId, BD);
 
-  const enriched = enrichBDs(
-    [{ id: bdId, object: { ...BD } }],
-    ALLCOLLECTIONS,
-    ALLEDITIONS
-  )[0];
-  ALLBDS.push(enriched);
-
+  const [enriched] = await enrichBDs([{ id: bdId, ...BD }]);
+  LOADED_BDS.push(enriched);
   return bdId;
 }
 
-// Met à jour une BD existante (id inchangé), en résolvant collection/édition au besoin.
-// Met aussi à jour ALLBDS en mémoire pour que l'affichage reflète le changement sans rechargement.
 async function updateBook(bdId, BD, COLLECTION, EDITION) {
+  ensureWritable();
   const { collectionId, editionId } = await resolveCollectionAndEdition(COLLECTION, EDITION);
 
   BD.fk_collection = collectionId;
   BD.fk_edition = editionId;
+  BD.ownerId = OWNER_ID;
 
   await updateDocument(Table.BDs, bdId, BD);
 
-  const index = ALLBDS.findIndex(bd => bd.id === bdId);
-  const enriched = enrichBDs(
-    [{ id: bdId, object: { ...BD } }],
-    ALLCOLLECTIONS,
-    ALLEDITIONS
-  )[0];
-
+  const index = LOADED_BDS.findIndex(bd => bd.id === bdId);
+  const [enriched] = await enrichBDs([{ id: bdId, ...BD }]);
   if (index === -1) {
-    ALLBDS.push(enriched);
+    LOADED_BDS.push(enriched);
   } else {
-    ALLBDS[index] = enriched;
+    LOADED_BDS[index] = enriched;
   }
 }
 
-// Supprime une BD, à la fois côté Firestore et dans le cache mémoire.
 async function deleteBook(bdId) {
+  ensureWritable();
   await deleteDocument(Table.BDs, bdId);
-  ALLBDS = ALLBDS.filter(bd => bd.id !== bdId);
+  LOADED_BDS = LOADED_BDS.filter(bd => bd.id !== bdId);
 }
 
-// --- Collections ---
+// --- Collections CRUD ---
 
-// Crée une collection "à vide" (sans BD associée pour l'instant).
-// Retourne l'id créé, ou undefined si une collection identique existe déjà.
 async function createCollection(COLLECTION) {
+  ensureWritable();
   if (COLLECTION.name == undefined) return undefined;
-  if (findIdByCollection(ALLCOLLECTIONS, COLLECTION) != undefined) return undefined;
-
+  if (await findCollectionId(COLLECTION) != undefined) return undefined;
   const collectionId = `${COLLECTION.name}:${COLLECTION.specialedition}:${generateShortUUID()}`;
-  await setDocument(Table.Collections, collectionId, COLLECTION);
-  ALLCOLLECTIONS.push({ id: collectionId, object: { ...COLLECTION } });
+  await setDocument(Table.Collections, collectionId, { ...COLLECTION, ownerId: OWNER_ID });
+  LOADED_COLLECTIONS.push({ id: collectionId, object: { ...COLLECTION, ownerId: OWNER_ID } });
   return collectionId;
 }
 
-// Renomme une collection. Les BD qui la référencent par id n'ont rien à mettre à jour
-// (elles gardent le même id de collection), seul l'objet enrichi affiché change.
 async function renameCollection(collectionId, COLLECTION) {
-  await updateDocument(Table.Collections, collectionId, COLLECTION);
-
-  const item = ALLCOLLECTIONS.find(c => c.id === collectionId);
-  if (item) item.object = { ...COLLECTION };
-
-  ALLBDS.forEach(bd => {
+  ensureWritable();
+  await updateDocument(Table.Collections, collectionId, { ...COLLECTION, ownerId: OWNER_ID });
+  const item = LOADED_COLLECTIONS.find(c => c.id === collectionId);
+  if (item) item.object = { ...COLLECTION, ownerId: OWNER_ID };
+  LOADED_BDS.forEach(bd => {
     if (bd.object.fk_collection_id === collectionId) {
-      bd.object.fk_collection = { ...COLLECTION };
+      bd.object.fk_collection = { ...COLLECTION, ownerId: OWNER_ID };
     }
   });
 }
 
-// Supprime une collection. Les BD qui y étaient rattachées ne sont pas supprimées,
-// elles repassent simplement "sans collection".
 async function deleteCollection(collectionId) {
+  ensureWritable();
   await deleteDocument(Table.Collections, collectionId);
-  ALLCOLLECTIONS = ALLCOLLECTIONS.filter(c => c.id !== collectionId);
+  LOADED_COLLECTIONS = LOADED_COLLECTIONS.filter(c => c.id !== collectionId);
 
-  const bdsToDetach = ALLBDS.filter(bd => bd.object.fk_collection_id === collectionId);
-  for (const bd of bdsToDetach) {
-    bd.object.fk_collection = null;
-    bd.object.fk_collection_id = undefined;
-    await updateDocument(Table.BDs, bd.id, { ...bd.object, fk_collection: undefined });
-  }
+  const clauses = [...ownerClause(), { field: "fk_collection", operator: "==", value: collectionId }];
+  const bdsToDetach = await getDocumentsWithWhere(Table.BDs, clauses);
+  await Promise.all(bdsToDetach.map(bd => {
+    const { id, ...rest } = bd;
+    return updateDocument(Table.BDs, id, { ...rest, fk_collection: null });
+  }));
+
+  LOADED_BDS.forEach(bd => {
+    if (bd.object.fk_collection_id === collectionId) {
+      bd.object.fk_collection = null;
+      bd.object.fk_collection_id = undefined;
+    }
+  });
 }
 
-function countBDsInCollection(collectionId) {
-  return ALLBDS.filter(bd => bd.object.fk_collection_id === collectionId).length;
+async function countBDsInCollection(collectionId) {
+  const clauses = [...ownerClause(), { field: "fk_collection", operator: "==", value: collectionId }];
+  return countDocumentsWithWhere(Table.BDs, clauses);
 }
 
-// --- Éditeurs ---
+async function loadBDsForCollection(collectionId) {
+  const clauses = [...ownerClause(), { field: "fk_collection", operator: "==", value: collectionId }];
+  const raw = await getDocumentsWithWhere(Table.BDs, clauses);
+  return enrichBDs(raw);
+}
+
+// --- Éditeurs CRUD ---
 
 async function createEditeur(EDITION) {
+  ensureWritable();
   if (EDITION.name == undefined) return undefined;
-  if (findIdByEdition(ALLEDITIONS, EDITION) != undefined) return undefined;
-
+  if (await findEditeurId(EDITION) != undefined) return undefined;
   const editionId = `${EDITION.name}:${generateShortUUID()}`;
-  await setDocument(Table.Editeurs, editionId, EDITION);
-  ALLEDITIONS.push({ id: editionId, object: { ...EDITION } });
+  await setDocument(Table.Editeurs, editionId, { ...EDITION, ownerId: OWNER_ID });
+  LOADED_EDITIONS.push({ id: editionId, object: { ...EDITION, ownerId: OWNER_ID } });
   return editionId;
 }
 
 async function renameEditeur(editionId, EDITION) {
-  await updateDocument(Table.Editeurs, editionId, EDITION);
-
-  const item = ALLEDITIONS.find(e => e.id === editionId);
-  if (item) item.object = { ...EDITION };
-
-  ALLBDS.forEach(bd => {
+  ensureWritable();
+  await updateDocument(Table.Editeurs, editionId, { ...EDITION, ownerId: OWNER_ID });
+  const item = LOADED_EDITIONS.find(e => e.id === editionId);
+  if (item) item.object = { ...EDITION, ownerId: OWNER_ID };
+  LOADED_BDS.forEach(bd => {
     if (bd.object.fk_edition_id === editionId) {
-      bd.object.fk_edition = { ...EDITION };
+      bd.object.fk_edition = { ...EDITION, ownerId: OWNER_ID };
     }
   });
 }
 
 async function deleteEditeur(editionId) {
+  ensureWritable();
   await deleteDocument(Table.Editeurs, editionId);
-  ALLEDITIONS = ALLEDITIONS.filter(e => e.id !== editionId);
+  LOADED_EDITIONS = LOADED_EDITIONS.filter(e => e.id !== editionId);
 
-  const bdsToDetach = ALLBDS.filter(bd => bd.object.fk_edition_id === editionId);
-  for (const bd of bdsToDetach) {
-    bd.object.fk_edition = null;
-    bd.object.fk_edition_id = undefined;
-    await updateDocument(Table.BDs, bd.id, { ...bd.object, fk_edition: undefined });
-  }
-}
+  const clauses = [...ownerClause(), { field: "fk_edition", operator: "==", value: editionId }];
+  const bdsToDetach = await getDocumentsWithWhere(Table.BDs, clauses);
+  await Promise.all(bdsToDetach.map(bd => {
+    const { id, ...rest } = bd;
+    return updateDocument(Table.BDs, id, { ...rest, fk_edition: null });
+  }));
 
-function countBDsForEditeur(editionId) {
-  return ALLBDS.filter(bd => bd.object.fk_edition_id === editionId).length;
-}
-
-// Remplace les fk_collection / fk_edition (qui sont des ids) par les objets complets correspondants,
-// pour un affichage direct sans requête supplémentaire. Conserve l'id brut sous
-// fk_collection_id / fk_edition_id pour pouvoir retrouver les BD d'une collection/édition donnée.
-function enrichBDs(bds, collections, editions) {
-  const collectionMap = Object.fromEntries(collections.map(c => [c.id, c.object]));
-  const editionMap = Object.fromEntries(editions.map(e => [e.id, e.object]));
-
-  return bds.map(bd => {
-    const collectionId = bd.object.fk_collection;
-    const editionId = bd.object.fk_edition;
-    bd.object.fk_collection_id = collectionId;
-    bd.object.fk_edition_id = editionId;
-    bd.object.fk_collection = collectionMap[collectionId] || null;
-    bd.object.fk_edition = editionMap[editionId] || null;
-    return bd;
+  LOADED_BDS.forEach(bd => {
+    if (bd.object.fk_edition_id === editionId) {
+      bd.object.fk_edition = null;
+      bd.object.fk_edition_id = undefined;
+    }
   });
 }
 
-// Charge en mémoire toutes les collections, éditions et BDs de l'utilisateur connecté.
-// À appeler une fois avant d'utiliser searchBD / displayBDs / createBook.
-async function initBdBooksUtils() {
-  const [rawCollections, rawEditions, rawBDs] = await Promise.all([
-    getAllDocuments(Table.Collections),
-    getAllDocuments(Table.Editeurs),
-    getAllDocuments(Table.BDs)
-  ]);
-
-  ALLCOLLECTIONS = rawCollections.map(doc => ({ id: doc.id, object: doc }));
-  ALLEDITIONS = rawEditions.map(doc => ({ id: doc.id, object: doc }));
-  const rawBdEntries = rawBDs.map(doc => ({ id: doc.id, object: doc }));
-
-  ALLBDS = enrichBDs(rawBdEntries, ALLCOLLECTIONS, ALLEDITIONS);
+async function countBDsForEditeur(editionId) {
+  const clauses = [...ownerClause(), { field: "fk_edition", operator: "==", value: editionId }];
+  return countDocumentsWithWhere(Table.BDs, clauses);
 }
 
-function getAllBDs() {
-  return ALLBDS;
+async function loadBDsForEditeur(editionId) {
+  const clauses = [...ownerClause(), { field: "fk_edition", operator: "==", value: editionId }];
+  const raw = await getDocumentsWithWhere(Table.BDs, clauses);
+  return enrichBDs(raw);
 }
 
-function getAllCollections() {
-  return ALLCOLLECTIONS;
-}
+// --- Accès aux caches locaux ---
 
-function getAllEditions() {
-  return ALLEDITIONS;
-}
-
-function searchBD(searchQuery) {
-  return ALLBDS.filter(item =>
-    item.id
-      .substring(0, item.id.lastIndexOf(':'))
-      .replaceAll(":", "")
-      .replaceAll("-", "")
-      .toLowerCase()
-      .includes(searchQuery.replaceAll("-", "").toLowerCase().trim())
-  );
-}
+function getLoadedBDs() { return LOADED_BDS; }
+function getLoadedCollections() { return LOADED_COLLECTIONS; }
+function getLoadedEditions() { return LOADED_EDITIONS; }
+function getBdHasMore() { return bdHasMore; }
+function getCollectionHasMore() { return collectionHasMore; }
+function getEditeurHasMore() { return editeurHasMore; }
 
 export {
   initBdBooksUtils,
+  isCanWrite,
+  loadNextBdPage,
+  loadNextCollectionPage,
+  loadNextEditeurPage,
+  searchBdByPrefix,
+  resetExpandSearch,
+  expandSearchNextBatch,
   createBook,
   updateBook,
   deleteBook,
-  searchBD,
-  getAllBDs,
-  getAllCollections,
-  getAllEditions,
+  getLoadedBDs,
+  getLoadedCollections,
+  getLoadedEditions,
+  getBdHasMore,
+  getCollectionHasMore,
+  getEditeurHasMore,
   createCollection,
   renameCollection,
   deleteCollection,
   countBDsInCollection,
+  loadBDsForCollection,
   createEditeur,
   renameEditeur,
   deleteEditeur,
-  countBDsForEditeur
+  countBDsForEditeur,
+  loadBDsForEditeur
 };
