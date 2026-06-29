@@ -131,11 +131,9 @@ function search() {
   if (selectValue === "bd") {
     window.location.href = "bds/bds.html?search=" + encoded;
   } else if (selectValue === "collection") {
-    // TODO: page de listing des collections pas encore créée (mabdtheque/collections/collections.html)
-    console.warn("La page de recherche par collection n'existe pas encore.");
+    window.location.href = "collections/collections.html?search=" + encoded;
   } else if (selectValue === "editor") {
-    // TODO: page de listing des éditeurs pas encore créée (mabdtheque/editeurs/editeurs.html)
-    console.warn("La page de recherche par éditeur n'existe pas encore.");
+    window.location.href = "editeurs/editeurs.html?search=" + encoded;
   }
 }
 

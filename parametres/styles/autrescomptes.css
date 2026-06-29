@@ -1,60 +1,106 @@
 .hint {
-    color: #6c757d;
-    margin-bottom: 20px;
+  color: var(--ink-soft);
+  margin-bottom: 1.25rem;
+  max-width: 560px;
 }
 
 .add-account-form {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    flex-wrap: wrap;
-    margin-bottom: 25px;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.5rem;
+  background: var(--paper-raised);
+  border: 1px solid var(--line);
+  border-radius: var(--border-radius-lg);
+  padding: 1.1rem 1.25rem;
+  box-shadow: var(--box-shadow);
 }
 
 .add-account-form input[type="email"] {
-    flex: 1;
-    min-width: 220px;
-    padding: 8px;
-    box-sizing: border-box;
+  flex: 1;
+  min-width: 220px;
+  padding: 0.55rem 0.65rem;
+  box-sizing: border-box;
+  border: 1px solid var(--line);
+  border-radius: var(--border-radius);
+  background: var(--paper);
+  color: var(--ink);
+  font-size: 0.95rem;
+}
+
+.add-account-form input[type="email"]:focus {
+  outline: 2px solid var(--cover-red);
+  outline-offset: 1px;
+  background: white;
+}
+
+.add-account-form button[type="submit"] {
+  padding: 0.55rem 1rem;
+  background: var(--cover-red);
+  color: white;
+  border: none;
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  font-weight: 600;
+  transition: background-color 0.15s;
+}
+
+.add-account-form button[type="submit"]:hover {
+  background-color: var(--cover-red-dark);
 }
 
 .checkbox-inline {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-weight: normal;
-    white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: normal;
+  white-space: nowrap;
+  color: var(--ink-soft);
+  font-size: 0.92rem;
+}
+
+.checkbox-inline input {
+  accent-color: var(--cover-red);
 }
 
 .accounts-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
+  list-style: none;
+  padding: 0;
+  margin: 0;
 }
 
 .account-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background: white;
-    border-radius: var(--border-radius);
-    box-shadow: var(--box-shadow);
-    padding: 0.9rem 1.25rem;
-    margin-bottom: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--paper-raised);
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--spine-green);
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+  padding: 0.9rem 1.25rem;
+  margin-bottom: 0.75rem;
 }
 
 .accounts-list .empty {
-    color: #6c757d;
-    background: none;
-    box-shadow: none;
-    padding: 0;
+  color: var(--ink-soft);
+  background: none;
+  box-shadow: none;
+  border: none;
+  padding: 0;
+  text-align: left;
 }
 
 .revoke-btn {
-    background: var(--danger);
-    padding: 6px 10px;
+  background: var(--danger);
+  color: white;
+  border: none;
+  padding: 0.45rem 0.65rem;
+  border-radius: var(--border-radius);
+  cursor: pointer;
 }
 
 .revoke-btn:hover {
-    opacity: 0.85;
+  opacity: 0.85;
 }

@@ -1,55 +1,114 @@
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Public+Sans:wght@400;500;600&display=swap');
+
+:root {
+  --paper: #F4EFE2;
+  --ink: #211D1A;
+  --ink-soft: #5B5450;
+  --cover-red: #B23A2E;
+  --cover-red-dark: #8E2C22;
+  --line: #E2D9C4;
+}
+
+* {
+  box-sizing: border-box;
+}
+
 body {
-  font-family: Arial, sans-serif;
-  background-color: #f5f5f5;
+  font-family: "Public Sans", Arial, sans-serif;
+  background-color: var(--paper);
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100vh;
   margin: 0;
+  color: var(--ink);
 }
+
 .login-container {
-  background: white;
-  padding: 2rem;
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  background: #FFFFFF;
+  padding: 2.5rem 2.25rem;
+  border-radius: 4px 10px 10px 4px;
+  box-shadow: 0 1px 2px rgba(33, 29, 26, 0.08), 0 16px 32px rgba(33, 29, 26, 0.14);
   width: 320px;
   text-align: center;
+  border-left: 8px solid var(--cover-red);
+  position: relative;
 }
+
 h1 {
-  margin-bottom: 1.5rem;
-  color: #333;
+  margin-bottom: 1.75rem;
+  font-family: "Fraunces", Georgia, serif;
+  font-weight: 700;
+  font-size: 1.65rem;
+  color: var(--ink);
 }
+
 input {
   width: 100%;
-  padding: 0.75rem;
+  padding: 0.7rem 0.8rem;
   margin-bottom: 1rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
   box-sizing: border-box;
+  font-family: "Public Sans", sans-serif;
+  font-size: 0.95rem;
+  background: #FBF8F0;
+  color: var(--ink);
 }
+
+input:focus {
+  outline: 2px solid var(--cover-red);
+  outline-offset: 1px;
+  background: #fff;
+}
+
 button {
   width: 100%;
   padding: 0.75rem;
-  background-color: #4285f4;
+  background-color: var(--cover-red);
   color: white;
   border: none;
-  border-radius: 4px;
+  border-radius: 6px;
   cursor: pointer;
   font-size: 1rem;
+  font-weight: 600;
+  transition: background-color 0.15s;
 }
+
 button:hover {
-  background-color: #3367d6;
+  background-color: var(--cover-red-dark);
 }
+
+button:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+
 .error {
-  color: red;
+  color: #A52A1E;
   margin-bottom: 1rem;
+  font-size: 0.9rem;
 }
+
 .success {
-  color: green;
+  color: #2E6E62;
   margin-bottom: 1rem;
+  font-size: 0.9rem;
 }
+
 #loginBtn {
   margin-bottom: 1rem;
+}
+
+#forgetPwd {
+  color: var(--ink-soft);
+  text-decoration: none;
+  font-size: 0.85rem;
+}
+
+#forgetPwd:hover {
+  color: var(--cover-red);
+  text-decoration: underline;
 }
 
 /*EASTER EGG*/
@@ -63,7 +122,7 @@ button:hover {
   outline: none;
   padding:8px 12px;border-radius:8px;
   transition: filter .25s ease, transform .25s ease;
-  color: #111;
+  color: var(--ink);
 }
 
 .egg span{
@@ -95,4 +154,4 @@ button:hover {
   100% { clip-path: inset(0 0 0 0); transform: translate(0,0); }
 }
 
-.egg:focus{box-shadow:0 0 0 4px rgba(34,170,34,0.2)}
+.egg:focus{box-shadow:0 0 0 4px rgba(178,58,46,0.2)}

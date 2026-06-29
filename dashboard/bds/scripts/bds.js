@@ -6,6 +6,8 @@ import { fetchBDFromISBN } from '../../../scripts/openlibrary.js';
 import {
   initBdBooksUtils,
   createBook,
+  updateBook,
+  deleteBook,
   searchBD,
   getAllBDs,
   getAllCollections,
@@ -14,6 +16,9 @@ import {
 import { getCurrentUser, logout } from '../../../scripts/firebase-auth.js';
 
 checkAuthAndRedirect();
+
+// Id de la BD en cours d'édition, ou null si on est en mode "création".
+let editingBdId = null;
 
 getCurrentUser().then(async (user) => {
   if (!user) {
@@ -34,6 +39,7 @@ getCurrentUser().then(async (user) => {
   });
 
   await initBdBooksUtils();
+  initAddForm();
 
   const urlParams = new URLSearchParams(window.location.search);
   if (urlParams.has("search")) {
@@ -48,7 +54,6 @@ getCurrentUser().then(async (user) => {
   }
 
   Array.from(document.getElementsByClassName("shortcut-search")).forEach(e => e.classList.remove("shortcut-search"));
-  initAddForm();
 
   document.getElementById("searchBarInput").addEventListener("change", search);
   document.getElementById("searchBar").addEventListener("click", search);
@@ -79,11 +84,11 @@ async function displayBD(bdId) {
 
   document.getElementById("bdList").innerHTML =
     `<div class="bd-container-controls">
-      <button>
+      <button id="editBdBtn" title="Modifier">
         <i class="fas fa-pencil"></i>
       </button>
-      <button>
-        <i class="fas fa-save"></i>
+      <button id="deleteBdBtn" title="Supprimer">
+        <i class="fas fa-trash"></i>
       </button>
    </div>
    <div class="bd-container">
@@ -100,7 +105,7 @@ async function displayBD(bdId) {
           <dt>Numéro</dt>
           <dd id="number">${currentBD.object.base_info?.number || ""}</dd>
           <dt>État</dt>
-          <dd id="state">${currentBD.object.base_info?.state || ""}</dd>
+          <dd id="state">${currentBD.object.base_info?.state ? `<span class="state-badge">${currentBD.object.base_info.state}</span>` : ""}</dd>
           <dt>Année</dt>
           <dd id="year">${currentBD.object.base_info?.year || ""}</dd>
           <dt>Date d'achat</dt>
@@ -120,8 +125,41 @@ async function displayBD(bdId) {
       </div>
   </div>`;
 
-  document.querySelector(".bd-container-controls button:first-child")
-    ?.addEventListener("click", () => { /* TODO: édition de la BD */ });
+  document.getElementById("editBdBtn").addEventListener("click", () => openEditBdForm(currentBD));
+  document.getElementById("deleteBdBtn").addEventListener("click", () => onDeleteBd(currentBD));
+}
+
+function openEditBdForm(currentBD) {
+  editingBdId = currentBD.id;
+  showAddBdForm();
+
+  document.getElementById("formTitle").textContent = "Modifier la BD";
+  document.querySelector('#livre-form button[type="submit"]').textContent = "Enregistrer";
+
+  document.getElementById("collection").value = currentBD.object.fk_collection?.name || "";
+  document.getElementById("edition_speciale").value = currentBD.object.fk_collection?.specialedition || "";
+  document.getElementById("editeur").value = currentBD.object.fk_edition?.name || "";
+  document.getElementById("isbn").value = currentBD.object.base_info?.ISBN || "";
+  document.getElementById("numero").value = currentBD.object.base_info?.number || "";
+  document.getElementById("titre").value = currentBD.object.base_info?.title || "";
+  document.getElementById("annee").value = currentBD.object.base_info?.year || "";
+  document.getElementById("couvertureImage").src = currentBD.object.base_info?.cover || "";
+  document.getElementById("etat").value = currentBD.object.base_info?.state || "";
+  document.getElementById("edition_or").value = currentBD.object.details?.goldedition || "";
+  document.getElementById("specialite").value = currentBD.object.details?.special || "";
+  document.getElementById("cote").value = currentBD.object.details?.reputation || "";
+  document.getElementById("date_achat").value = currentBD.object.purchasedate || "";
+}
+
+async function onDeleteBd(currentBD) {
+  const title = currentBD.object.base_info?.title || "cette BD";
+  if (!window.confirm(`Supprimer définitivement « ${title} » de votre BDthèque ?`)) {
+    return;
+  }
+
+  document.getElementById("deleteBdBtn").disabled = true;
+  await deleteBook(currentBD.id);
+  backToList();
 }
 
 function displayBDs(bds) {
@@ -208,6 +246,10 @@ function hideAddBdForm() {
     elem.value = "";
   });
   document.getElementById("couvertureImage").src = "";
+
+  editingBdId = null;
+  document.getElementById("formTitle").textContent = "Ajouter une BD";
+  document.querySelector('#livre-form button[type="submit"]').textContent = "Créer";
 }
 
 function initAddForm() {
@@ -249,9 +291,16 @@ async function onSubmitAddBdForm(e) {
     const editeur = new Editor(document.getElementById("editeur").value.trim() || undefined);
     const bd = formToBd();
 
-    await createBook(bd, collection, editeur);
-    hideAddBdForm();
-    backToList();
+    if (editingBdId) {
+      const idBeingEdited = editingBdId;
+      await updateBook(idBeingEdited, bd, collection, editeur);
+      hideAddBdForm();
+      selectBd(idBeingEdited);
+    } else {
+      await createBook(bd, collection, editeur);
+      hideAddBdForm();
+      backToList();
+    }
   } finally {
     Array.from(document.getElementsByClassName("formAction")).forEach(btn => { btn.disabled = false; });
   }

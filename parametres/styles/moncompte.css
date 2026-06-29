@@ -1,163 +1,144 @@
-.form-header {
-    display: flex;
-    align-items: flex-start;
-    margin-bottom: 15px;
-}
-.avatar-group {
-    margin-right: 20px;
-}
-.avatar-upload {
-    position: relative;
-    width: 100px;
-    height: 100px;
-    border-radius: 50%;
-    background-color: #f0f0f0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    overflow: hidden;
-    cursor: pointer;
-    border: 2px dashed #ccc;
-    margin-bottom: 5px;
-}
-.avatar-upload:hover {
-    background-color: #e0e0e0;
-}
-.avatar-upload .plus {
-    font-size: 24px;
-    color: #999;
-}
-.avatar-upload img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-.avatar-upload .delete-btn {
-    position: absolute;
-    top: -5px;
-    right: 1px;
-    background: var(--danger);
-    color: white;
-    border: 2px solid white;
-    width: 100%;
-    height: 30px;
-    font-size: 14px;
-    cursor: pointer;
-    display: none;
-    box-shadow: 0 0 2px rgba(0, 0, 0, 0.3);
-    z-index: 2;
-}
-#avatarInput {
-    display: none;
-}
-.names-group {
-    flex: 1;
-}
-.form-group {
-    margin-bottom: 10px;
-}
-.form-group label {
-    display: block;
-    margin-bottom: 5px;
-    font-weight: bold;
-}
-.form-group input[type="text"],
-.form-group input[type="password"] {
-    width: 100%;
-    padding: 8px;
-    box-sizing: border-box;
-}
-.checkbox-group {
-    margin: 20px 0;
-}
-.checkbox-item {
-    display: flex;
-    align-items: center;
-    margin-bottom: 10px;
+#registrationForm {
+  background: var(--paper-raised);
+  border: 1px solid var(--line);
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--box-shadow);
+  padding: 1.5rem 1.75rem;
+  margin-bottom: 1.5rem;
 }
 
-button {
-    background-color: #4CAF50;
-    color: white;
-    padding: 10px 15px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 16px;
+.form-header {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 1rem;
 }
-button:hover {
-    background-color: #45a049;
+
+.avatar-group {
+  margin-right: 1.5rem;
+}
+
+.avatar-upload {
+  position: relative;
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  background-color: var(--paper);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  cursor: pointer;
+  border: 2px dashed var(--line);
+  margin-bottom: 5px;
+  transition: background-color 0.15s;
+}
+
+.avatar-upload:hover {
+  background-color: var(--light);
+}
+
+.avatar-upload .plus {
+  font-size: 24px;
+  color: var(--ink-soft);
+}
+
+.avatar-upload img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.avatar-upload .delete-btn {
+  position: absolute;
+  top: -5px;
+  right: 1px;
+  background: var(--danger);
+  color: white;
+  border: 2px solid white;
+  width: 100%;
+  height: 30px;
+  font-size: 14px;
+  cursor: pointer;
+  display: none;
+  box-shadow: 0 0 2px rgba(0, 0, 0, 0.3);
+  z-index: 2;
+}
+
+#avatarInput {
+  display: none;
+}
+
+.names-group {
+  flex: 1;
+}
+
+.form-group {
+  margin-bottom: 0.85rem;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.35rem;
+  font-weight: 600;
+  font-size: 0.88rem;
+  color: var(--ink-soft);
+}
+
+.form-group input[type="text"],
+.form-group input[type="password"] {
+  width: 100%;
+  padding: 0.55rem 0.65rem;
+  box-sizing: border-box;
+  border: 1px solid var(--line);
+  border-radius: var(--border-radius);
+  background: var(--paper);
+  color: var(--ink);
+  font-size: 0.95rem;
+}
+
+.form-group input:focus {
+  outline: 2px solid var(--cover-red);
+  outline-offset: 1px;
+  background: white;
+}
+
+.checkbox-group {
+  margin: 1.25rem 0;
+}
+
+.checkbox-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.6rem;
 }
 
 #registrationForm h3 {
-    text-decoration: underline;
-    margin-bottom: 10px;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 1.05rem;
+  margin-bottom: 0.75rem;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 0.4rem;
 }
 
-/* Shortcuts */
-.shortcuts {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(30%, 1fr));
-  gap: 1rem;
-  margin-bottom: 1.5rem;
-  flex-wrap: wrap;
-}
-
-.shortcut-card {
-  background: white;
+#registrationForm > button[type="submit"] {
+  margin: 0.5rem auto 0;
+  display: block;
+  padding: 0.65rem 1.75rem;
+  background-color: var(--cover-red);
+  color: white;
+  border: none;
   border-radius: var(--border-radius);
-  box-shadow: var(--box-shadow);
-  padding: 1.25rem;
-  flex: 1;
-  text-align: center;
-  min-width: 120px;
-  position: relative;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 600;
+  transition: background-color 0.15s;
 }
 
-.shortcut-card-plus button {
-    background: none;
-    border: 1px solid #eee;
-    font-size: 0.9rem;
-    align-items: center;
-    justify-content: center;
-    padding: 0.5rem;
-    border-radius: var(--border-radius);
-    transition: all 0.2s;
-    cursor: pointer;
-}
-
-.shortcut-card i {
-  font-size: 1.5rem;
-  color: var(--primary);
-  margin-bottom: 0.5rem;
-}
-
-.shortcut-card h4 {
-  margin-bottom: 0.25rem;
-  font-size: 1.2rem;
-}
-
-.shortcut-card p {
-  color: #6c757d;
-  font-size: 0.85rem;
-}
-
-.shortcut-card input[type="checkbox"] {
-    position: absolute;
-    top: 10px;
-    left: 10px;
-}
-
-.shortcut-card-plus {
-  display: flex;
-  justify-content: center;
+#registrationForm > button[type="submit"]:hover {
+  background-color: var(--cover-red-dark);
 }
 
 #shortcuts-container button i {
-    margin-right: 0.5rem;
-}
-
-button[type="submit"] {
-    margin: 0px auto;
-    display: block;
+  margin-right: 0.5rem;
 }

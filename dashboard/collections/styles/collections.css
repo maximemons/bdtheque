@@ -1,0 +1,60 @@
+.hint {
+  color: var(--ink-soft);
+  margin: 0.5rem 0 1.5rem 0;
+}
+
+.collection-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1.75rem 1rem;
+  border-left: 4px solid var(--spine-green);
+}
+
+.collection-card-icon {
+  font-size: 2.25rem;
+  color: var(--spine-green);
+  margin-bottom: 0.6rem;
+}
+
+.collection-card .bd-info {
+  text-align: center;
+}
+
+#collectionBdList .bd-card, #editeurBdList .bd-card {
+  cursor: pointer;
+}
+
+.bd-container-controls {
+  background: var(--paper-raised);
+  border: 1px solid var(--line);
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--box-shadow);
+  padding: 0.6rem;
+  display: flex;
+  gap: 0.5rem;
+  width: fit-content;
+  margin-bottom: 1rem;
+}
+
+.bd-container-controls button {
+  background: none;
+  border: 1px solid var(--line);
+  color: var(--ink-soft);
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.bd-container-controls button:hover {
+  background: var(--cover-red);
+  border-color: var(--cover-red);
+  color: white;
+}
+
+[id^="delete"]:hover {
+  background: var(--danger) !important;
+  border-color: var(--danger) !important;
+}

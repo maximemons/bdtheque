@@ -1,13 +1,34 @@
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Public+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
 :root {
-  --primary: #4361ee;
-  --secondary: #3f37c9;
-  --light: #f8f9fa;
-  --dark: #212529;
-  --success: #4cc9f0;
-  --warning: #f8961e;
-  --danger: #f72585;
-  --border-radius: 8px;
-  --box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  /* Palette "reliure de BD" : papier chaud, encre, couverture rouge, dos vert, tampon ocre */
+  --paper: #F4EFE2;
+  --paper-raised: #FFFFFF;
+  --ink: #211D1A;
+  --ink-soft: #5B5450;
+  --cover-red: #B23A2E;
+  --cover-red-dark: #8E2C22;
+  --spine-green: #2E6E62;
+  --ochre: #D98E2E;
+  --line: #E2D9C4;
+
+  /* Alias rétro-compatibles avec l'ancien thème, utilisés par endroits dans le code existant */
+  --primary: var(--cover-red);
+  --secondary: var(--cover-red-dark);
+  --light: #EDE6D4;
+  --dark: var(--ink);
+  --success: var(--spine-green);
+  --warning: var(--ochre);
+  --danger: #A52A1E;
+
+  --border-radius: 6px;
+  --border-radius-lg: 10px;
+  --box-shadow: 0 1px 2px rgba(33, 29, 26, 0.06), 0 4px 10px rgba(33, 29, 26, 0.06);
+  --box-shadow-raised: 0 2px 4px rgba(33, 29, 26, 0.08), 0 10px 24px rgba(33, 29, 26, 0.10);
+
+  --font-display: "Fraunces", Georgia, serif;
+  --font-body: "Public Sans", "Segoe UI", Tahoma, sans-serif;
+  --font-mono: "JetBrains Mono", "Courier New", monospace;
 }
 
 * {
@@ -17,51 +38,100 @@
 }
 
 body {
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-  background-color: #f5f7fa;
-  color: var(--dark);
+  font-family: var(--font-body);
+  background-color: var(--paper);
+  color: var(--ink);
   line-height: 1.6;
+}
+
+h1, h2, h3, h4, h5 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+a {
+  color: inherit;
+}
+
+button, input, select {
+  font-family: var(--font-body);
+}
+
+::selection {
+  background: var(--ochre);
+  color: var(--ink);
+}
+
+/* Focus clavier visible partout, sobre mais net */
+a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible {
+  outline: 2px solid var(--cover-red);
+  outline-offset: 2px;
 }
 
 .header-mobile {
   display: none;
-  background: white;
+  background: var(--paper-raised);
   padding: 1rem;
   box-shadow: var(--box-shadow);
   position: sticky;
   top: 0;
   z-index: 1000;
+  border-bottom: 1px solid var(--line);
 }
 
 .hamburger {
   font-size: 1.5rem;
   cursor: pointer;
+  color: var(--ink);
 }
 
-/* Sidebar */
+/* Sidebar — pensée comme la tranche reliée d'un livre posé sur l'étagère */
 .sidebar {
   width: 250px;
-  background: white;
-  box-shadow: var(--box-shadow);
+  background: var(--ink);
+  color: #EDE7DA;
   position: fixed;
   height: 100vh;
-  padding: 1.5rem;
+  padding: 1.75rem 1.25rem;
   z-index: 100;
   transform: translateX(0);
   transition: transform 0.3s ease;
+  box-shadow: var(--box-shadow-raised);
+  border-right: 6px solid var(--cover-red);
+}
+
+/* Fines coutures de reliure, purement décoratives */
+.sidebar::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: -6px;
+  width: 2px;
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(244, 239, 226, 0.35) 0,
+    rgba(244, 239, 226, 0.35) 6px,
+    transparent 6px,
+    transparent 14px
+  );
 }
 
 .logo {
   display: flex;
   align-items: center;
-  margin-bottom: 2rem;
-  font-size: 1.5rem;
-  font-weight: bold;
-  color: var(--primary);
+  margin-bottom: 2.25rem;
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #FBF7EC;
+  letter-spacing: 0.01em;
 }
 
 .logo i {
-  margin-right: 0.5rem;
+  margin-right: 0.6rem;
+  color: var(--cover-red);
 }
 
 .nav-links,
@@ -72,7 +142,7 @@ body {
 }
 
 .nav-links li {
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.35rem;
   position: relative;
 }
 
@@ -80,25 +150,31 @@ body {
   display: flex;
   align-items: center;
   text-decoration: none;
-  color: var(--dark);
-  padding: 0.75rem;
+  color: #D8D1C2;
+  padding: 0.65rem 0.75rem;
   border-radius: var(--border-radius);
-  transition: all 0.2s;
+  transition: all 0.15s;
+  font-size: 0.95rem;
 }
 
-.nav-links a:hover, .selected-nav-link, .selected-nav-link a{
-  background-color: var(--light);
-  color: var(--primary);
+.nav-links a:hover {
+  background-color: rgba(244, 239, 226, 0.08);
+  color: #FBF7EC;
+}
+
+.selected-nav-link > a {
+  background-color: var(--cover-red);
+  color: #FBF7EC !important;
 }
 
 .disabled-nav-link a {
-  color: #aaa;
+  color: #6B6459;
   cursor: not-allowed;
 }
 
 .disabled-nav-link a:hover {
   background-color: transparent;
-  color: #aaa;
+  color: #6B6459;
 }
 
 .nav-links a i {
@@ -109,23 +185,36 @@ body {
 
 aside footer {
   position: absolute;
-  bottom: 10px;
+  bottom: 1.25rem;
+  left: 1.25rem;
+  right: 1.25rem;
   text-align: center;
-  width: 100%;
-  color:  red;
+  border-top: 1px solid rgba(244, 239, 226, 0.15);
+  padding-top: 1rem;
 }
 
-/* Style pour les sous-menus */
+aside footer i {
+  color: #D8D1C2;
+  cursor: pointer;
+  font-size: 1.1rem;
+  transition: color 0.15s;
+}
+
+aside footer i:hover {
+  color: var(--cover-red);
+}
+
 .nav-links ul {
   display: block;
-  padding-left: 1.5rem;
-  margin-top: 0.5rem;
+  padding-left: 1.4rem;
+  margin-top: 0.35rem;
+  border-left: 1px solid rgba(244, 239, 226, 0.12);
 }
 
 /* Main Content */
 .main-content {
   margin-left: 250px;
-  padding: 1.5rem;
+  padding: 2rem 2.25rem;
   width: calc(100% - 250px);
 }
 
@@ -137,6 +226,7 @@ aside footer {
   .sidebar {
     width: 80%;
     transform: translateX(-100%);
+    border-right: none;
   }
   .sidebar.open {
     transform: translateX(0);
@@ -144,7 +234,7 @@ aside footer {
   .main-content {
     margin-left: 0;
     width: 100%;
-    padding: 1rem;
+    padding: 1.25rem;
   }
 
   #searchCamera.show-camera {
@@ -154,11 +244,12 @@ aside footer {
 
 /* User Card */
 .user-card {
-  background: white;
-  border-radius: var(--border-radius);
+  background: var(--paper-raised);
+  border-radius: var(--border-radius-lg);
   box-shadow: var(--box-shadow);
   padding: 1.25rem;
   margin-bottom: 1.5rem;
+  border: 1px solid var(--line);
 }
 
 .user-header {
@@ -171,11 +262,12 @@ aside footer {
   width: 50px;
   height: 50px;
   border-radius: 50%;
-  background-color: var(--primary);
+  background-color: var(--cover-red);
   color: white;
   display: flex;
   align-items: center;
   justify-content: center;
+  font-family: var(--font-display);
   font-size: 1.25rem;
   margin-right: 1rem;
   flex-shrink: 0;
@@ -187,8 +279,9 @@ aside footer {
 }
 
 .user-info p {
-  color: #6c757d;
+  color: var(--ink-soft);
   font-size: 0.9rem;
+  font-family: var(--font-body);
 }
 
 .user-avatar .avatar-cover {
@@ -211,7 +304,7 @@ aside footer {
 /* Bouton logout dans user-card */
 .btn-logout, #closeCamera {
   background: none;
-  border: 1px solid #eee;
+  border: 1px solid var(--line);
   color: var(--danger);
   font-size: 0.9rem;
   cursor: pointer;
@@ -225,8 +318,8 @@ aside footer {
 }
 
 .btn-logout:hover, #closeCamera:hover {
-  background: rgba(247, 37, 133, 0.1);
-  border-color: rgba(247, 37, 133, 0.2);
+  background: rgba(165, 42, 30, 0.08);
+  border-color: rgba(165, 42, 30, 0.25);
 }
 
 .btn-logout i {
@@ -242,16 +335,336 @@ aside footer {
     top: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.7);
+    background-color: rgba(33, 29, 26, 0.55);
     overflow: auto;
+    backdrop-filter: blur(2px);
 }
 
 .modal-content {
-    background-color: #fefefe;
-    margin: 15% auto;
-    padding: 20px;
-    border-radius: 8px;
+    background-color: var(--paper-raised);
+    margin: 8% auto;
+    padding: 1.75rem;
+    border-radius: var(--border-radius-lg);
     width: 80%;
     max-width: 600px;
     text-align: center;
+    box-shadow: var(--box-shadow-raised);
+}
+
+/* ============================================================
+   Composants partagés entre dashboard / bds / collections / éditeurs / paramètres
+   ============================================================ */
+
+/* Cartes "raccourci" (accueil + page Mon compte) */
+.shortcuts {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(30%, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.shortcut-card {
+  background: var(--paper-raised);
+  border: 1px solid var(--line);
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--box-shadow);
+  padding: 1.25rem;
+  flex: 1;
+  text-align: center;
+  min-width: 120px;
+  position: relative;
+}
+
+.shortcut-card-full {
+  grid-column: 1 / -1;
+  text-align: left;
+}
+
+.shortcut-card-full select, .shortcut-card-full input, .shortcut-card-full button, .shortcut-card-plus button {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  font-size: 0.9rem;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem;
+  border-radius: var(--border-radius);
+  transition: all 0.2s;
+  cursor: pointer;
+  color: var(--ink);
+}
+
+.shortcut-card-full button {
+  height: 33px;
+}
+
+.shortcut-card-full button:hover, .shortcut-card-plus button:hover {
+  background-color: var(--cover-red);
+  border-color: var(--cover-red);
+  color: white;
+}
+
+.shortcut-card-full > div {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.shortcut-card-full input[type="text"] {
+  width: 100%;
+  cursor: inherit;
+}
+
+.shortcut-card-full i {
+  font-size: inherit !important;
+  margin: auto;
+}
+
+.shortcut-card-full h2 {
+  text-align: left;
+  margin-bottom: 15px;
+  font-size: 1.15rem;
+}
+
+.shortcut-card i {
+  font-size: 1.5rem;
+  color: var(--cover-red);
+  margin-bottom: 0.5rem;
+}
+
+.shortcut-card h4 {
+  margin-bottom: 0.25rem;
+  font-size: 1.3rem;
+  font-family: var(--font-mono);
+  font-weight: 500;
+}
+
+.shortcut-card p {
+  color: var(--ink-soft);
+  font-size: 0.85rem;
+}
+
+.shortcut-card input[type="checkbox"] {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  accent-color: var(--cover-red);
+}
+
+.shortcut-card-plus {
+  display: flex;
+  justify-content: center;
+}
+
+#searchCamera {
+  display: none;
+}
+
+/* Étagère : grille de couvertures de BD ou de cartes collection/éditeur */
+.bd-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.1rem;
+}
+
+.bd-card {
+  background: var(--paper-raised);
+  border: 1px solid var(--line);
+  border-radius: 3px var(--border-radius) var(--border-radius) 3px;
+  box-shadow: var(--box-shadow);
+  overflow: hidden;
+  width: 152px;
+  text-align: center;
+  cursor: pointer;
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+  border-left: 4px solid var(--cover-red);
+}
+
+.bd-card:hover {
+  transform: translateY(-4px) rotate(-0.5deg);
+  box-shadow: var(--box-shadow-raised);
+}
+
+.bd-cover {
+  width: 100%;
+  aspect-ratio: 2 / 3;
+  object-fit: cover;
+  display: block;
+  background: var(--light);
+}
+
+.bd-info {
+  padding: 0.6rem 0.6rem 0.8rem;
+}
+
+.bd-info h3 {
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 0.92rem;
+  margin: 0.2rem 0;
+  line-height: 1.3;
+}
+
+.bd-info p {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+  margin: 0;
+}
+
+.collection-block {
+  margin-top: 2rem;
+  width: 100%;
+}
+
+.collection-block h2 {
+  margin-bottom: 1rem;
+  font-size: 1.4rem;
+  border-bottom: 2px solid var(--cover-red);
+  display: inline-block;
+  padding-bottom: 0.4rem;
+}
+
+.empty {
+  font-style: italic;
+  color: var(--ink-soft);
+  padding: 1.25rem;
+  background: var(--paper-raised);
+  border: 1px dashed var(--line);
+  border-radius: var(--border-radius);
+  text-align: center;
+  width: 100%;
+}
+
+/* Formulaires en modale (ajout/édition BD, collection, éditeur) */
+.modal-content form {
+  text-align: left;
+}
+
+.modal-content h2 {
+  margin-top: 1.1rem;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 0.4rem;
+  font-size: 1.2rem;
+}
+
+.modal-content h2:first-child {
+  margin-top: 0;
+}
+
+.modal-content label {
+  display: block;
+  margin-top: 0.9rem;
+  font-weight: 600;
+  font-size: 0.88rem;
+  color: var(--ink-soft);
+}
+
+.modal-content input, .modal-content select {
+  width: 100%;
+  padding: 0.55rem 0.65rem;
+  margin-top: 0.35rem;
+  box-sizing: border-box;
+  border: 1px solid var(--line);
+  border-radius: var(--border-radius);
+  background: var(--paper);
+  color: var(--ink);
+  font-size: 0.95rem;
+}
+
+.modal-content input:focus, .modal-content select:focus {
+  outline: 2px solid var(--cover-red);
+  outline-offset: 1px;
+  background: white;
+}
+
+.modal-content input[type="file"] {
+  padding: 0.3rem;
+  border: none;
+}
+
+.modal-content .autocomplete-container {
+  position: relative;
+}
+
+.modal-content .autocomplete-container ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-top: none;
+  position: absolute;
+  width: 100%;
+  max-height: 150px;
+  overflow-y: auto;
+  background-color: white;
+  display: none;
+  z-index: 1000;
+  border-radius: 0 0 var(--border-radius) var(--border-radius);
+}
+
+.modal-content .autocomplete-container li {
+  padding: 0.5rem 0.65rem;
+  cursor: pointer;
+  text-align: left;
+}
+
+.modal-content .autocomplete-container li:hover {
+  background-color: var(--paper);
+}
+
+.modal-content form > div:last-child {
+  margin-top: 1.4rem;
+  display: flex;
+  gap: 0.6rem;
+}
+
+.modal-content button[type="submit"] {
+  flex: 1;
+  padding: 0.65rem;
+  background-color: var(--cover-red);
+  color: white;
+  border: none;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+
+.modal-content button[type="submit"]:hover {
+  background-color: var(--cover-red-dark);
+}
+
+.modal-content button[type="button"] {
+  flex: 1;
+  padding: 0.65rem;
+  background: var(--paper);
+  color: var(--ink-soft);
+  border: 1px solid var(--line);
+  font-size: 1rem;
+  border-radius: var(--border-radius);
+  cursor: pointer;
+}
+
+.modal-content button[type="button"]:hover {
+  background: var(--light);
+}
+
+.modal-content button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Badge d'état (TBE, Neuf...) façon étiquette de bibliothèque tamponnée */
+.state-badge {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 500;
+  padding: 0.15rem 0.5rem;
+  border: 1px solid var(--spine-green);
+  color: var(--spine-green);
+  border-radius: 3px;
+  letter-spacing: 0.02em;
 }

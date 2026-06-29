@@ -14,8 +14,8 @@ function generateMenu() {
             <li><a href="#"><i class="fas fa-folder-open"></i>Ma BDtheque</a>
                 <ul>
                 	<li><a href="https://maximemons.github.io/bdtheque/dashboard/bds/bds.html"><i class="fas fa-book"></i>Mes BDs</a></li>
-                    <li class="disabled-nav-link"><a href="#" title="Bientôt disponible"><i class="fas fa-folder"></i>Mes Collections</a></li>
-                    <li class="disabled-nav-link"><a href="#" title="Bientôt disponible"><i class="fas fa-pencil"></i>Mes Editeurs</a></li>
+                    <li><a href="https://maximemons.github.io/bdtheque/dashboard/collections/collections.html"><i class="fas fa-folder"></i>Mes Collections</a></li>
+                    <li><a href="https://maximemons.github.io/bdtheque/dashboard/editeurs/editeurs.html"><i class="fas fa-pencil"></i>Mes Editeurs</a></li>
                 </ul>
             </li>
             <li><a href="#"><i class="fas fa-cog"></i>Paramètres</a>
