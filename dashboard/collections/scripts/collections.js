@@ -64,15 +64,11 @@ async function loadMoreCollections() {
     list.appendChild(loader);
   }
 
-  const { items, hasMore } = await loadNextCollectionPage();
-  // Les comptages sont async, on les résout en parallèle
-  const counts = await Promise.all(
-    getLoadedCollections().map(c => countBDsInCollection(c.id))
-  );
-  renderCollectionList(getLoadedCollections(), counts, getCollectionHasMore());
+  await loadNextCollectionPage();
+  renderCollectionList(getLoadedCollections(), getCollectionHasMore());
 }
 
-function renderCollectionList(collections, counts, hasMore) {
+function renderCollectionList(collections, hasMore) {
   const list = document.getElementById("collectionsList");
   list.innerHTML = "";
 
@@ -84,11 +80,11 @@ function renderCollectionList(collections, counts, hasMore) {
   const grid = document.createElement("div");
   grid.classList.add("bd-list");
 
-  collections.forEach((collectionEntry, i) => {
+  collections.forEach(collectionEntry => {
     const displayName = collectionEntry.object.specialedition
       ? `${collectionEntry.object.name} : ${collectionEntry.object.specialedition}`
       : collectionEntry.object.name;
-    const count = counts[i] ?? "…";
+    const count = countBDsInCollection(collectionEntry.id);
 
     const card = document.createElement("div");
     card.classList.add("bd-card", "collection-card");
@@ -118,11 +114,7 @@ function search() {
   const query = document.getElementById("searchBarInput").value.trim().toLowerCase();
   const all = getLoadedCollections();
   const filtered = query === "" ? all : all.filter(c => (c.object.name || "").toLowerCase().includes(query));
-
-  // Pour la recherche on re-calcule les counts sur le sous-ensemble filtré
-  Promise.all(filtered.map(c => countBDsInCollection(c.id))).then(counts => {
-    renderCollectionList(filtered, counts, false); // pas de "charger plus" en mode recherche
-  });
+  renderCollectionList(filtered, false); // pas de "charger plus" en mode recherche
 }
 
 function initForm() {
@@ -180,7 +172,7 @@ async function onSubmitForm(e) {
 }
 
 async function onDeleteCollection(collectionEntry) {
-  const count = await countBDsInCollection(collectionEntry.id);
+  const count = countBDsInCollection(collectionEntry.id);
   const warning = count > 0 ? `${count} BD seront détachées de cette collection (elles ne seront pas supprimées). ` : "";
   if (!window.confirm(`${warning}Supprimer définitivement la collection « ${collectionEntry.object.name} » ?`)) return;
   await deleteCollection(collectionEntry.id);
@@ -192,7 +184,6 @@ async function displayCollectionDetail(collectionId) {
   // Charger la collection si elle n'est pas encore dans le cache local
   let collectionEntry = getLoadedCollections().find(c => c.id === decodedId);
   if (!collectionEntry) {
-    const { loadNextCollectionPage: _ } = await import('../../scripts/dbBooksUtils.js');
     // On recharge les collections jusqu'à la trouver ou être à court
     while (!collectionEntry && getCollectionHasMore()) {
       await loadNextCollectionPage();

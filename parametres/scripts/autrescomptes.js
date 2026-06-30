@@ -2,6 +2,7 @@ import { checkAuthAndRedirect } from '../../scripts/auth-guard.js';
 import { getDocumentsWithWhere, setDocument, deleteDocument } from '../../scripts/firebase-db.js';
 import { getCurrentUser } from '../../scripts/firebase-auth.js';
 import { Table } from '../../scripts/enums.js';
+import { invalidateOwnershipCache } from '../../scripts/ownership.js';
 
 checkAuthAndRedirect();
 
@@ -72,6 +73,7 @@ async function onInvite(e) {
 
   try {
     await setDocument(Table.Sharing, email, { owner: ownerEmail, canWrite });
+    invalidateOwnershipCache();
     document.getElementById("newAccountEmail").value = "";
     document.getElementById("newAccountCanWrite").checked = false;
     await refreshAccountsList();
@@ -82,5 +84,6 @@ async function onInvite(e) {
 
 async function onRevoke(email) {
   await deleteDocument(Table.Sharing, email).catch(() => {});
+  invalidateOwnershipCache();
   await refreshAccountsList();
 }

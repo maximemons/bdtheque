@@ -16,7 +16,10 @@ import {
   updateBook,
   deleteBook,
   getLoadedBDs,
-  getBdHasMore
+  getLoadedCollections,
+  getLoadedEditions,
+  getBdHasMore,
+  rawToEntry
 } from '../../scripts/dbBooksUtils.js';
 
 checkAuthAndRedirect();
@@ -271,17 +274,14 @@ function renderSearchExhausted() {
 // --- Fiche détail ---
 
 async function displayBD(bdId) {
-  const currentBD = getLoadedBDs().find(bd => bd.id === decodeURI(bdId).replaceAll("%27", "'"))
-    || await (async () => {
-      // Pas encore en cache (accès direct via URL) : charger uniquement cette BD
-      const raw = await getDocumentById(Table.BDs, decodeURIComponent(bdId)).catch(() => undefined);
-      if (!raw) return undefined;
-      const [enriched] = await (async () => {
-        const { enrichBDsStandalone } = await Promise.resolve();
-        return [raw];
-      })();
-      return { id: bdId, object: raw };
-    })();
+  const decodedId = decodeURI(bdId).replaceAll("%27", "'");
+  let currentBD = getLoadedBDs().find(bd => bd.id === decodedId);
+
+  if (currentBD == undefined) {
+    // Pas encore en cache (accès direct via URL, ex: lien partagé) : charger uniquement cette BD.
+    const raw = await getDocumentById(Table.BDs, decodedId).catch(() => undefined);
+    currentBD = raw ? rawToEntry(raw) : undefined;
+  }
 
   if (currentBD == undefined) {
     window.location.href = window.location.origin + window.location.pathname;

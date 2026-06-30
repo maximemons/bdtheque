@@ -65,11 +65,10 @@ async function loadMoreEditeurs() {
   }
 
   await loadNextEditeurPage();
-  const counts = await Promise.all(getLoadedEditions().map(e => countBDsForEditeur(e.id)));
-  renderEditeurList(getLoadedEditions(), counts, getEditeurHasMore());
+  renderEditeurList(getLoadedEditions(), getEditeurHasMore());
 }
 
-function renderEditeurList(editeurs, counts, hasMore) {
+function renderEditeurList(editeurs, hasMore) {
   const list = document.getElementById("editeursList");
   list.innerHTML = "";
 
@@ -81,8 +80,8 @@ function renderEditeurList(editeurs, counts, hasMore) {
   const grid = document.createElement("div");
   grid.classList.add("bd-list");
 
-  editeurs.forEach((editeurEntry, i) => {
-    const count = counts[i] ?? "…";
+  editeurs.forEach(editeurEntry => {
+    const count = countBDsForEditeur(editeurEntry.id);
     const card = document.createElement("div");
     card.classList.add("bd-card", "collection-card");
     card.addEventListener("click", () => selectEditeur(editeurEntry.id));
@@ -111,9 +110,7 @@ function search() {
   const query = document.getElementById("searchBarInput").value.trim().toLowerCase();
   const all = getLoadedEditions();
   const filtered = query === "" ? all : all.filter(e => (e.object.name || "").toLowerCase().includes(query));
-  Promise.all(filtered.map(e => countBDsForEditeur(e.id))).then(counts => {
-    renderEditeurList(filtered, counts, false);
-  });
+  renderEditeurList(filtered, false);
 }
 
 function initForm() {
@@ -166,7 +163,7 @@ async function onSubmitForm(e) {
 }
 
 async function onDeleteEditeur(editeurEntry) {
-  const count = await countBDsForEditeur(editeurEntry.id);
+  const count = countBDsForEditeur(editeurEntry.id);
   const warning = count > 0 ? `${count} BD seront détachées de cet éditeur (elles ne seront pas supprimées). ` : "";
   if (!window.confirm(`${warning}Supprimer définitivement l'éditeur « ${editeurEntry.object.name} » ?`)) return;
   await deleteEditeur(editeurEntry.id);

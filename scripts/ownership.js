@@ -1,19 +1,33 @@
 import { getDocumentById } from './firebase-db.js';
 import { Table } from './enums.js';
 
-// Détermine à quelle bédéthèque l'utilisateur connecté doit accéder :
-// - normalement, la sienne (son propre email)
-// - si un compte propriétaire lui a donné accès (table "sharing"), celle du propriétaire
-// Retourne { ownerId, canWrite } : ownerId est l'email à utiliser comme filtre sur toutes
-// les requêtes BDs/Collections/Editeurs, canWrite indique si l'utilisateur peut modifier/créer.
-async function resolveOwnership(userEmail) {
-  const share = await getDocumentById(Table.Sharing, userEmail).catch(() => undefined);
+const CACHE_KEY = 'bdtheque_ownership';
 
-  if (share != undefined && share.owner) {
-    return { ownerId: share.owner, canWrite: Boolean(share.canWrite) };
+// Détermine à quelle bédéthèque l'utilisateur connecté doit accéder.
+// Le résultat est mis en cache dans sessionStorage (valide jusqu'à fermeture de l'onglet)
+// pour éviter une requête Firestore à chaque chargement de page.
+// Appeler invalidateOwnershipCache() après un changement de partage (invite/révocation).
+async function resolveOwnership(userEmail) {
+  const cached = sessionStorage.getItem(CACHE_KEY);
+  if (cached) {
+    try {
+      return JSON.parse(cached);
+    } catch (_) { /* cache corrompu, on recalcule */ }
   }
 
-  return { ownerId: userEmail, canWrite: true };
+  const share = await getDocumentById(Table.Sharing, userEmail).catch(() => undefined);
+  const result = (share != undefined && share.owner)
+    ? { ownerId: share.owner, canWrite: Boolean(share.canWrite) }
+    : { ownerId: userEmail, canWrite: true };
+
+  sessionStorage.setItem(CACHE_KEY, JSON.stringify(result));
+  return result;
 }
 
-export { resolveOwnership };
+// À appeler depuis autrescomptes.js après invite ou révocation,
+// pour forcer le recalcul au prochain chargement de page.
+function invalidateOwnershipCache() {
+  sessionStorage.removeItem(CACHE_KEY);
+}
+
+export { resolveOwnership, invalidateOwnershipCache };

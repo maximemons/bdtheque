@@ -1,4 +1,4 @@
-import { getFirestore, collection, getCountFromServer, query, where, orderBy, limit, startAfter, getDocs, doc, getDoc, setDoc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getFirestore, collection, getCountFromServer, query, where, orderBy, limit, startAfter, getDocs, doc, getDoc, setDoc, updateDoc, deleteDoc, increment } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { app } from "./firebase-auth.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
@@ -141,6 +141,14 @@ async function countDocumentsWithWhere(collectionName, whereClauses) {
     return snapshot.data().count;
 }
 
+// INCREMENT: Incrémenter (ou décrémenter si delta < 0) un champ numérique atomiquement.
+// Utilise FieldValue.increment, donc safe en écriture concurrente.
+async function incrementField(collectionName, docId, field, delta) {
+    await checkAuth();
+    const docRef = doc(db, collectionName, docId);
+    await updateDoc(docRef, { [field]: increment(delta) });
+}
+
 export {
     db,
     getAllDocuments,
@@ -150,6 +158,7 @@ export {
     getDocumentById,
     setDocument,
     updateDocument,
+    incrementField,
     deleteDocument,
     countDocuments,
     countDocumentsWithWhere
