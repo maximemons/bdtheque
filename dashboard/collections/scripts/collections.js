@@ -2,6 +2,7 @@ import { checkAuthAndRedirect } from '../../../scripts/auth-guard.js';
 import { Collection } from '../../../scripts/records.js';
 import { getCurrentUser } from '../../../scripts/firebase-auth.js';
 import { resolveOwnership } from '../../../scripts/ownership.js';
+import { showFatalError } from '../../../scripts/ui-error.js';
 import {
   initBdBooksUtils,
   loadNextCollectionPage,
@@ -21,25 +22,31 @@ let editingCollectionId = null;
 getCurrentUser().then(async (user) => {
   if (!user) return;
 
-  const { ownerId, canWrite } = await resolveOwnership(user.email);
-  initBdBooksUtils(ownerId, canWrite);
+  try {
+    const { ownerId, canWrite } = await resolveOwnership(user.email);
+    initBdBooksUtils(ownerId, canWrite);
 
-  initForm();
+    initForm();
 
-  const urlParams = new URLSearchParams(window.location.search);
-  if (urlParams.has("collection")) {
-    Array.from(document.getElementsByClassName("shortcut-show")).forEach(e => e.classList.remove("shortcut-show"));
-    await displayCollectionDetail(urlParams.get("collection"));
-    return;
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has("collection")) {
+      Array.from(document.getElementsByClassName("shortcut-show")).forEach(e => e.classList.remove("shortcut-show"));
+      await displayCollectionDetail(urlParams.get("collection"));
+      return;
+    }
+
+    Array.from(document.getElementsByClassName("shortcut-search")).forEach(e => e.classList.remove("shortcut-search"));
+
+    document.getElementById("searchBarInput").addEventListener("change", search);
+    document.getElementById("searchBarInput").addEventListener("keydown", e => { if (e.key === "Enter") search(); });
+    document.getElementById("searchBar").addEventListener("click", search);
+
+    await loadMoreCollections();
+  } catch (error) {
+    showFatalError("collectionsList", error, "chargement de la page Mes Collections");
   }
-
-  Array.from(document.getElementsByClassName("shortcut-search")).forEach(e => e.classList.remove("shortcut-search"));
-
-  document.getElementById("searchBarInput").addEventListener("change", search);
-  document.getElementById("searchBarInput").addEventListener("keydown", e => { if (e.key === "Enter") search(); });
-  document.getElementById("searchBar").addEventListener("click", search);
-
-  await loadMoreCollections();
+}).catch(error => {
+  showFatalError("collectionsList", error, "vérification de l'authentification");
 });
 
 function backToList() {
@@ -64,8 +71,12 @@ async function loadMoreCollections() {
     list.appendChild(loader);
   }
 
-  await loadNextCollectionPage();
-  renderCollectionList(getLoadedCollections(), getCollectionHasMore());
+  try {
+    await loadNextCollectionPage();
+    renderCollectionList(getLoadedCollections(), getCollectionHasMore());
+  } catch (error) {
+    showFatalError("collectionsList", error, "chargement des collections");
+  }
 }
 
 function renderCollectionList(collections, hasMore) {

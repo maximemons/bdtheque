@@ -1,5 +1,7 @@
 import { getDocumentById, countDocuments, countDocumentsWithWhere } from '../../scripts/firebase-db.js';
 import { getCurrentUser, logout } from '../../scripts/firebase-auth.js';
+import { resolveOwnership } from '../../scripts/ownership.js';
+import { showFatalError } from '../../scripts/ui-error.js';
 import { Table, Shortcut } from '../../scripts/enums.js';
 import { Preferences } from '../../scripts/records.js';
 
@@ -8,46 +10,54 @@ getCurrentUser().then(async (user) => {
     window.location.href = "https://maximemons.github.io/bdtheque";
     return;
   }
-  let userPreferences = await getDocumentById(Table.Preferences, user.email);
-  if(userPreferences == undefined) {
-    userPreferences = new Preferences();
+
+  try {
+    const { ownerId } = await resolveOwnership(user.email);
+    let userPreferences = await getDocumentById(Table.Preferences, ownerId).catch(() => undefined);
+    if(userPreferences == undefined) {
+      userPreferences = new Preferences();
+    }
+
+    //USERNAME
+    document.getElementById("userName").innerText = getDisplayName(userPreferences.self, user.email);
+    document.getElementById("userEmail").innerText = user.email;
+
+    //AVATAR
+    const avatar = userPreferences?.self?.avatar?.trim();
+    if (avatar) {
+     const userAvatar = document.getElementById("userAvatar");
+     userAvatar.insertAdjacentHTML("beforeend", `
+       <div class="avatar-cover">
+       <img src="${avatar}" alt="User avatar">
+       </div>
+       `);
+    }else {
+      document.getElementById("userAvatar").innerText = getDisplayName(userPreferences.self, user.email).charAt(0).toUpperCase();
+    }
+
+    //LOGOUT
+    document.getElementById("logoutBtn").addEventListener("click", logout);
+
+    //SHORTCUTS
+    generateShortcutsFromPreferences(userPreferences);
+
+    //Init scanner
+    initiateScanner("searchCamera", "closeCamera", "video", "overlay", "searchBarInput", function(){document.getElementById('searchBar').click();});//document.getElementById("searchBar").click());
+
+    //Init Search
+    document.getElementById("searchCateg").addEventListener("change", changeSearchSource);
+    document.getElementById("searchBar").addEventListener("click", search);
+    document.getElementById("searchBarInput").addEventListener("keydown", (e) => {
+      if (e.key === "Enter") search();
+    });
+
+    //Init EasterEgg
+    initEasterEgg();
+  } catch (error) {
+    showFatalError("content", error, "chargement du tableau de bord");
   }
-
-  //USERNAME
-  document.getElementById("userName").innerText = getDisplayName(userPreferences.self, user.email);
-  document.getElementById("userEmail").innerText = user.email;
-
-  //AVATAR
-  const avatar = userPreferences?.self?.avatar?.trim();
-  if (avatar) {
-   const userAvatar = document.getElementById("userAvatar");
-   userAvatar.insertAdjacentHTML("beforeend", `
-     <div class="avatar-cover">
-     <img src="${avatar}" alt="User avatar">
-     </div>
-     `);
-  }else {
-    document.getElementById("userAvatar").innerText = getDisplayName(userPreferences.self, user.email).charAt(0).toUpperCase();
-  }
-
-  //LOGOUT
-  document.getElementById("logoutBtn").addEventListener("click", logout);
-
-  //SHORTCUTS
-  generateShortcutsFromPreferences(userPreferences);
-
-  //Init scanner
-  initiateScanner("searchCamera", "closeCamera", "video", "overlay", "searchBarInput", function(){document.getElementById('searchBar').click();});//document.getElementById("searchBar").click());
-
-  //Init Search
-  document.getElementById("searchCateg").addEventListener("change", changeSearchSource);
-  document.getElementById("searchBar").addEventListener("click", search);
-  document.getElementById("searchBarInput").addEventListener("keydown", (e) => {
-    if (e.key === "Enter") search();
-  });
-
-  //Init EasterEgg
-  initEasterEgg();
+}).catch(error => {
+  showFatalError("content", error, "vérification de l'authentification");
 });
 
 function getDisplayName(user, email) {

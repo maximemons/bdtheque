@@ -5,6 +5,7 @@ import { Preferences, Editor, Collection, BD } from '../../../scripts/records.js
 import { fetchBDFromISBN } from '../../../scripts/openlibrary.js';
 import { getCurrentUser } from '../../../scripts/firebase-auth.js';
 import { resolveOwnership } from '../../../scripts/ownership.js';
+import { showFatalError } from '../../../scripts/ui-error.js';
 import {
   initBdBooksUtils,
   isCanWrite,
@@ -36,31 +37,37 @@ let expandRunning = false;
 getCurrentUser().then(async (user) => {
   if (!user) return;
 
-  const { ownerId, canWrite } = await resolveOwnership(user.email);
-  initBdBooksUtils(ownerId, canWrite);
+  try {
+    const { ownerId, canWrite } = await resolveOwnership(user.email);
+    initBdBooksUtils(ownerId, canWrite);
 
-  initAddForm();
+    initAddForm();
 
-  const urlParams = new URLSearchParams(window.location.search);
-  if (urlParams.has("search")) {
-    document.getElementById("searchBarInput").value = urlParams.get("search");
-  } else if (urlParams.has("add")) {
-    showAddBdForm();
-    document.getElementById("isbn").value = urlParams.get("add");
-  } else if (urlParams.has("bd")) {
-    Array.from(document.getElementsByClassName("shortcut-show")).forEach(e => e.classList.remove("shortcut-show"));
-    await displayBD(urlParams.get("bd"));
-    return;
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has("search")) {
+      document.getElementById("searchBarInput").value = urlParams.get("search");
+    } else if (urlParams.has("add")) {
+      showAddBdForm();
+      document.getElementById("isbn").value = urlParams.get("add");
+    } else if (urlParams.has("bd")) {
+      Array.from(document.getElementsByClassName("shortcut-show")).forEach(e => e.classList.remove("shortcut-show"));
+      await displayBD(urlParams.get("bd"));
+      return;
+    }
+
+    Array.from(document.getElementsByClassName("shortcut-search")).forEach(e => e.classList.remove("shortcut-search"));
+
+    document.getElementById("searchBarInput").addEventListener("change", onSearch);
+    document.getElementById("searchBarInput").addEventListener("keydown", e => { if (e.key === "Enter") onSearch(); });
+    document.getElementById("searchBar").addEventListener("click", onSearch);
+
+    // Premier chargement
+    await loadMoreBds();
+  } catch (error) {
+    showFatalError("bdList", error, "chargement de la page Mes BDs");
   }
-
-  Array.from(document.getElementsByClassName("shortcut-search")).forEach(e => e.classList.remove("shortcut-search"));
-
-  document.getElementById("searchBarInput").addEventListener("change", onSearch);
-  document.getElementById("searchBarInput").addEventListener("keydown", e => { if (e.key === "Enter") onSearch(); });
-  document.getElementById("searchBar").addEventListener("click", onSearch);
-
-  // Premier chargement
-  await loadMoreBds();
+}).catch(error => {
+  showFatalError("bdList", error, "vérification de l'authentification");
 });
 
 function backToList() {
@@ -78,8 +85,12 @@ async function loadMoreBds() {
   if (btn) btn.disabled = true;
 
   showListLoading();
-  const { items, hasMore } = await loadNextBdPage();
-  renderBdList(getLoadedBDs(), getBdHasMore());
+  try {
+    await loadNextBdPage();
+    renderBdList(getLoadedBDs(), getBdHasMore());
+  } catch (error) {
+    showFatalError("bdList", error, "chargement des BDs");
+  }
 }
 
 function showListLoading() {
@@ -161,8 +172,12 @@ async function onSearch() {
   expandScannedTotal = 0;
 
   renderSearchLoading(query);
-  searchResults = await searchBdByPrefix(query);
-  renderSearchResults();
+  try {
+    searchResults = await searchBdByPrefix(query);
+    renderSearchResults();
+  } catch (error) {
+    showFatalError("bdList", error, "recherche de BDs");
+  }
 }
 
 function renderSearchLoading(query) {

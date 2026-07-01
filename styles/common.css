@@ -771,3 +771,56 @@ aside footer i:hover {
   border-radius: 3px;
   letter-spacing: 0.02em;
 }
+
+.expand-done i {
+  margin-right: 0.35rem;
+}
+
+/* Erreur bloquante affichée à la place d'un écran de chargement infini silencieux */
+.fatal-error {
+  width: 100%;
+  text-align: center;
+  padding: 2.5rem 1.5rem;
+  background: var(--paper-raised);
+  border: 1px solid var(--danger);
+  border-radius: var(--border-radius-lg);
+  color: var(--ink);
+}
+
+.fatal-error i {
+  font-size: 2rem;
+  color: var(--danger);
+  margin-bottom: 0.75rem;
+}
+
+.fatal-error-detail {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+  background: var(--paper);
+  border-radius: var(--border-radius);
+  padding: 0.6rem 0.9rem;
+  margin: 0.75rem auto;
+  max-width: 480px;
+  word-break: break-word;
+}
+
+.fatal-error-hint {
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+  margin-bottom: 1rem;
+}
+
+.fatal-error button {
+  padding: 0.55rem 1.25rem;
+  background: var(--cover-red);
+  color: white;
+  border: none;
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.fatal-error button:hover {
+  background: var(--cover-red-dark);
+}

@@ -2,6 +2,7 @@ import { checkAuthAndRedirect } from '../../scripts/auth-guard.js';
 import { getDocumentById, setDocument } from '../../scripts/firebase-db.js';
 import { getCurrentUser } from '../../scripts/firebase-auth.js';
 import { resolveOwnership } from '../../scripts/ownership.js';
+import { showFatalError } from '../../scripts/ui-error.js';
 import { Table, Shortcut } from '../../scripts/enums.js';
 import { Preferences } from '../../scripts/records.js';
 
@@ -13,40 +14,46 @@ let userMail;
 getCurrentUser().then(async (user) => {
   if (!user) return;
 
-  const { ownerId } = await resolveOwnership(user.email);
-  userMail = ownerId;
-  userPreferences = await getDocumentById(Table.Preferences, user.email).catch(() => undefined);
-  if (userPreferences == undefined) {
-    userPreferences = new Preferences();
-  }
+  try {
+    const { ownerId } = await resolveOwnership(user.email);
+    userMail = ownerId;
+    userPreferences = await getDocumentById(Table.Preferences, userMail).catch(() => undefined);
+    if (userPreferences == undefined) {
+      userPreferences = new Preferences();
+    }
 
-  // Informations personnelles
-  if (userPreferences.self?.firstname) {
-    document.getElementById("firstname").value = userPreferences.self.firstname;
-  }
-  if (userPreferences.self?.lastname) {
-    document.getElementById("lastname").value = userPreferences.self.lastname;
-  }
+    // Informations personnelles
+    if (userPreferences.self?.firstname) {
+      document.getElementById("firstname").value = userPreferences.self.firstname;
+    }
+    if (userPreferences.self?.lastname) {
+      document.getElementById("lastname").value = userPreferences.self.lastname;
+    }
 
-  // Avatar
-  const avatar = userPreferences?.self?.avatar?.trim();
-  if (avatar) {
-    showAvatarPreview(avatar);
+    // Avatar
+    const avatar = userPreferences?.self?.avatar?.trim();
+    if (avatar) {
+      showAvatarPreview(avatar);
+    }
+
+    // Raccourcis
+    generateShortcutsFromPreferences(userPreferences);
+
+    // Listeners
+    document.getElementById("avatarUploadTrigger").addEventListener("click", () => {
+      document.getElementById("avatarInput").click();
+    });
+    document.getElementById("avatarInput").addEventListener("change", previewAvatar);
+    document.getElementById("deleteAvatarBtn").addEventListener("click", deleteAvatar);
+    document.getElementById("registrationForm").addEventListener("submit", onSubmitForm);
+    document.getElementById("modalValidate")?.addEventListener("click", () => {
+      document.getElementById("modal").style.display = "none";
+    });
+  } catch (error) {
+    showFatalError("registrationForm", error, "chargement de la page Mon compte");
   }
-
-  // Raccourcis
-  generateShortcutsFromPreferences(userPreferences);
-
-  // Listeners
-  document.getElementById("avatarUploadTrigger").addEventListener("click", () => {
-    document.getElementById("avatarInput").click();
-  });
-  document.getElementById("avatarInput").addEventListener("change", previewAvatar);
-  document.getElementById("deleteAvatarBtn").addEventListener("click", deleteAvatar);
-  document.getElementById("registrationForm").addEventListener("submit", onSubmitForm);
-  document.getElementById("modalValidate")?.addEventListener("click", () => {
-    document.getElementById("modal").style.display = "none";
-  });
+}).catch(error => {
+  showFatalError("registrationForm", error, "vérification de l'authentification");
 });
 
 function showAvatarPreview(src) {

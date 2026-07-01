@@ -2,6 +2,7 @@ import { checkAuthAndRedirect } from '../../../scripts/auth-guard.js';
 import { Editor } from '../../../scripts/records.js';
 import { getCurrentUser } from '../../../scripts/firebase-auth.js';
 import { resolveOwnership } from '../../../scripts/ownership.js';
+import { showFatalError } from '../../../scripts/ui-error.js';
 import {
   initBdBooksUtils,
   loadNextEditeurPage,
@@ -21,25 +22,31 @@ let editingEditeurId = null;
 getCurrentUser().then(async (user) => {
   if (!user) return;
 
-  const { ownerId, canWrite } = await resolveOwnership(user.email);
-  initBdBooksUtils(ownerId, canWrite);
+  try {
+    const { ownerId, canWrite } = await resolveOwnership(user.email);
+    initBdBooksUtils(ownerId, canWrite);
 
-  initForm();
+    initForm();
 
-  const urlParams = new URLSearchParams(window.location.search);
-  if (urlParams.has("editeur")) {
-    Array.from(document.getElementsByClassName("shortcut-show")).forEach(e => e.classList.remove("shortcut-show"));
-    await displayEditeurDetail(urlParams.get("editeur"));
-    return;
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has("editeur")) {
+      Array.from(document.getElementsByClassName("shortcut-show")).forEach(e => e.classList.remove("shortcut-show"));
+      await displayEditeurDetail(urlParams.get("editeur"));
+      return;
+    }
+
+    Array.from(document.getElementsByClassName("shortcut-search")).forEach(e => e.classList.remove("shortcut-search"));
+
+    document.getElementById("searchBarInput").addEventListener("change", search);
+    document.getElementById("searchBarInput").addEventListener("keydown", e => { if (e.key === "Enter") search(); });
+    document.getElementById("searchBar").addEventListener("click", search);
+
+    await loadMoreEditeurs();
+  } catch (error) {
+    showFatalError("editeursList", error, "chargement de la page Mes Éditeurs");
   }
-
-  Array.from(document.getElementsByClassName("shortcut-search")).forEach(e => e.classList.remove("shortcut-search"));
-
-  document.getElementById("searchBarInput").addEventListener("change", search);
-  document.getElementById("searchBarInput").addEventListener("keydown", e => { if (e.key === "Enter") search(); });
-  document.getElementById("searchBar").addEventListener("click", search);
-
-  await loadMoreEditeurs();
+}).catch(error => {
+  showFatalError("editeursList", error, "vérification de l'authentification");
 });
 
 function backToList() {
@@ -64,8 +71,12 @@ async function loadMoreEditeurs() {
     list.appendChild(loader);
   }
 
-  await loadNextEditeurPage();
-  renderEditeurList(getLoadedEditions(), getEditeurHasMore());
+  try {
+    await loadNextEditeurPage();
+    renderEditeurList(getLoadedEditions(), getEditeurHasMore());
+  } catch (error) {
+    showFatalError("editeursList", error, "chargement des éditeurs");
+  }
 }
 
 function renderEditeurList(editeurs, hasMore) {

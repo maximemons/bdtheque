@@ -1,21 +1,20 @@
 import { getFirestore, collection, getCountFromServer, query, where, orderBy, limit, startAfter, getDocs, doc, getDoc, setDoc, updateDoc, deleteDoc, increment } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { app } from "./firebase-auth.js";
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { getAuth } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
 const db = getFirestore(app);
 const auth = getAuth(app);
 
-// Fonction utilitaire pour vérifier l'authentification
-async function checkAuth() {
-    return new Promise((resolve, reject) => {
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                resolve(user);
-            } else {
-                reject(new Error("Non authentifié. Veuillez vous connecter."));
-            }
-        });
-    });
+// Vérifie que l'utilisateur est connecté.
+// Après le bootstrap de la page (getCurrentUser() résolu), Firebase Auth maintient
+// l'état en mémoire — auth.currentUser est disponible de façon synchrone et instantanée,
+// sans aucun listener ni requête réseau.
+function checkAuth() {
+    const user = auth.currentUser;
+    if (!user) {
+        throw new Error("Non authentifié. Veuillez vous connecter.");
+    }
+    return user;
 }
 
 // GET: Tous les documents d'une collection
@@ -85,16 +84,16 @@ async function getDocumentsByPrefix(collectionName, whereClauses, orderByField, 
     return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 }
 
-// GET: Un document spécifique par son ID
+// GET: Un document spécifique par son ID.
+// Retourne undefined si le document n'existe pas (cas normal, pas une erreur).
 async function getDocumentById(collectionName, docId) {
     await checkAuth();
     const docRef = doc(db, collectionName, docId);
     const docSnap = await getDoc(docRef);
     if (docSnap.exists()) {
         return { id: docSnap.id, ...docSnap.data() };
-    } else {
-        throw new Error("Document non trouvé");
     }
+    return undefined;
 }
 
 // CREATE/UPDATE: Ajouter ou mettre à jour un document (avec ou sans ID spécifique)

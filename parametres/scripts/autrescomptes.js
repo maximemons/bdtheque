@@ -3,6 +3,7 @@ import { getDocumentsWithWhere, setDocument, deleteDocument } from '../../script
 import { getCurrentUser } from '../../scripts/firebase-auth.js';
 import { Table } from '../../scripts/enums.js';
 import { invalidateOwnershipCache } from '../../scripts/ownership.js';
+import { showFatalError } from '../../scripts/ui-error.js';
 
 checkAuthAndRedirect();
 
@@ -13,14 +14,20 @@ getCurrentUser().then(async (user) => {
     return; // checkAuthAndRedirect() prend déjà en charge la redirection
   }
 
-  ownerEmail = user.email;
+  try {
+    ownerEmail = user.email;
 
-  document.getElementById("addAccountForm").addEventListener("submit", onInvite);
-  document.getElementById("modalValidate")?.addEventListener("click", () => {
-    document.getElementById("modal").style.display = "none";
-  });
+    document.getElementById("addAccountForm").addEventListener("submit", onInvite);
+    document.getElementById("modalValidate")?.addEventListener("click", () => {
+      document.getElementById("modal").style.display = "none";
+    });
 
-  await refreshAccountsList();
+    await refreshAccountsList();
+  } catch (error) {
+    showFatalError("accountsList", error, "chargement de la page Autres comptes");
+  }
+}).catch(error => {
+  showFatalError("accountsList", error, "vérification de l'authentification");
 });
 
 async function refreshAccountsList() {
