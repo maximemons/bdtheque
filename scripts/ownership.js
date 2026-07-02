@@ -1,33 +1,28 @@
 import { getDocumentById } from './firebase-db.js';
 import { Table } from './enums.js';
 
-const CACHE_KEY = 'bdtheque_ownership';
+const CACHE_KEY = 'bdtheque_canwrite';
 
-// Détermine à quelle bédéthèque l'utilisateur connecté doit accéder.
-// Le résultat est mis en cache dans sessionStorage (valide jusqu'à fermeture de l'onglet)
-// pour éviter une requête Firestore à chaque chargement de page.
-// Appeler invalidateOwnershipCache() après un changement de partage (invite/révocation).
-async function resolveOwnership(userEmail) {
+// Détermine si l'utilisateur connecté peut modifier la BDthèque.
+// - Propriétaire (aucun doc sharing pour son email) : canWrite = true
+// - Invité (doc sharing trouvé) : canWrite selon ce que le propriétaire a configuré
+// Résultat mis en cache sessionStorage pour ne pas refaire la requête à chaque page.
+async function resolveCanWrite(userEmail) {
   const cached = sessionStorage.getItem(CACHE_KEY);
-  if (cached) {
-    try {
-      return JSON.parse(cached);
-    } catch (_) { /* cache corrompu, on recalcule */ }
+  if (cached !== null) {
+    return cached === 'true';
   }
 
   const share = await getDocumentById(Table.Sharing, userEmail).catch(() => undefined);
-  const result = (share != undefined && share.owner)
-    ? { ownerId: share.owner, canWrite: Boolean(share.canWrite) }
-    : { ownerId: userEmail, canWrite: true };
+  const canWrite = (share == undefined) ? true : Boolean(share.canWrite);
 
-  sessionStorage.setItem(CACHE_KEY, JSON.stringify(result));
-  return result;
+  sessionStorage.setItem(CACHE_KEY, String(canWrite));
+  return canWrite;
 }
 
-// À appeler depuis autrescomptes.js après invite ou révocation,
-// pour forcer le recalcul au prochain chargement de page.
+// Invalider après un changement de partage (invite/révocation depuis autrescomptes.js).
 function invalidateOwnershipCache() {
   sessionStorage.removeItem(CACHE_KEY);
 }
 
-export { resolveOwnership, invalidateOwnershipCache };
+export { resolveCanWrite, invalidateOwnershipCache };

@@ -1,6 +1,5 @@
 import { getDocumentById, countDocuments, countDocumentsWithWhere } from '../../scripts/firebase-db.js';
 import { getCurrentUser, logout } from '../../scripts/firebase-auth.js';
-import { resolveOwnership } from '../../scripts/ownership.js';
 import { showFatalError } from '../../scripts/ui-error.js';
 import { Table, Shortcut } from '../../scripts/enums.js';
 import { Preferences } from '../../scripts/records.js';
@@ -12,8 +11,7 @@ getCurrentUser().then(async (user) => {
   }
 
   try {
-    const { ownerId } = await resolveOwnership(user.email);
-    let userPreferences = await getDocumentById(Table.Preferences, ownerId).catch(() => undefined);
+    let userPreferences = await getDocumentById(Table.Preferences, user.email).catch(() => undefined);
     if(userPreferences == undefined) {
       userPreferences = new Preferences();
     }

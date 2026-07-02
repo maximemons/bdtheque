@@ -1,7 +1,7 @@
 import { checkAuthAndRedirect } from '../../../scripts/auth-guard.js';
 import { Editor } from '../../../scripts/records.js';
 import { getCurrentUser } from '../../../scripts/firebase-auth.js';
-import { resolveOwnership } from '../../../scripts/ownership.js';
+import { resolveCanWrite } from '../../../scripts/ownership.js';
 import { showFatalError } from '../../../scripts/ui-error.js';
 import {
   initBdBooksUtils,
@@ -23,8 +23,8 @@ getCurrentUser().then(async (user) => {
   if (!user) return;
 
   try {
-    const { ownerId, canWrite } = await resolveOwnership(user.email);
-    initBdBooksUtils(ownerId, canWrite);
+    const canWrite = await resolveCanWrite(user.email);
+    initBdBooksUtils(canWrite);
 
     initForm();
 

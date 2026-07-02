@@ -4,7 +4,7 @@ import { Table, State } from '../../../scripts/enums.js';
 import { Preferences, Editor, Collection, BD } from '../../../scripts/records.js';
 import { fetchBDFromISBN } from '../../../scripts/openlibrary.js';
 import { getCurrentUser } from '../../../scripts/firebase-auth.js';
-import { resolveOwnership } from '../../../scripts/ownership.js';
+import { resolveCanWrite } from '../../../scripts/ownership.js';
 import { showFatalError } from '../../../scripts/ui-error.js';
 import {
   initBdBooksUtils,
@@ -38,8 +38,8 @@ getCurrentUser().then(async (user) => {
   if (!user) return;
 
   try {
-    const { ownerId, canWrite } = await resolveOwnership(user.email);
-    initBdBooksUtils(ownerId, canWrite);
+    const canWrite = await resolveCanWrite(user.email);
+    initBdBooksUtils(canWrite);
 
     initAddForm();
 
@@ -437,6 +437,10 @@ async function onSubmitAddBdForm(e) {
       hideAddBdForm();
       backToList();
     }
+  } catch (error) {
+    showFatalError("bdList", error, "sauvegarde de la BD");
+    // On referme la modale pour que le message d'erreur soit visible derrière
+    hideAddBdForm();
   } finally {
     Array.from(document.getElementsByClassName("formAction")).forEach(btn => { btn.disabled = false; });
   }
@@ -506,8 +510,11 @@ function formToBd() {
     const v = document.getElementById(id).value.trim();
     return v === "" ? undefined : v;
   };
-  const coverSrc = document.getElementById("couvertureImage").src.trim();
-  const cover = (coverSrc === "" || coverSrc.startsWith("file://")) ? undefined : coverSrc;
+  // L'attribut src d'un <img> sans source retourne l'URL de la page elle-même dans certains
+  // navigateurs — on compare donc contre l'URL de la page pour détecter "pas de cover".
+  const imgEl = document.getElementById("couvertureImage");
+  const coverSrc = imgEl.getAttribute("src")?.trim() || "";
+  const cover = (coverSrc === "" || coverSrc === window.location.href) ? undefined : coverSrc;
   return new BD(undefined, undefined, val("isbn")?.replaceAll("-", ""), val("numero"),
     val("titre"), val("annee"), val("etat"), cover, val("cote"), val("edition_or"), val("specialite"), val("date_achat"));
 }
