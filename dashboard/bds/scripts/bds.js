@@ -73,13 +73,10 @@ getCurrentUser().then(async (user) => {
     document.getElementById("searchBarInput").addEventListener("keydown", e => { if (e.key === "Enter") onSearch(); });
     document.getElementById("searchBar").addEventListener("click", onSearch);
 
-    // Charger les BD et pré-charger collections/éditeurs en parallèle.
-    // Les BD s'affichent dès que leur lot arrive ; les collections/éditeurs
-    // se chargent en arrière-plan pour alimenter l'autocomplete du formulaire.
-    await Promise.all([
-      loadMoreBds(),
-      preloadAllCollectionsAndEditions()
-    ]);
+    // Charger d'abord les collections et éditeurs (nécessaire pour le fallback
+    // de dénormalisation sur les anciennes BD), puis les BD en parallèle.
+    await preloadAllCollectionsAndEditions();
+    await loadMoreBds();
   } catch (error) {
     showFatalError("bdList", error, "chargement de la page Mes BDs");
   }

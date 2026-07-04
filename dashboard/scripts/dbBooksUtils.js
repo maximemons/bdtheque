@@ -60,17 +60,45 @@ function ensureWritable() {
 }
 
 // Convertit un document Firestore brut en entrée de cache {id, object}.
-// Les noms collection/édition sont dénormalisés dans la BD — pas de jointure réseau.
+// Les noms collection/édition sont normalement dénormalisés dans la BD.
+// Fallback sur le cache local LOADED_COLLECTIONS/LOADED_EDITIONS pour les anciennes
+// BD créées avant la dénormalisation (avant migration).
 function rawToEntry(raw) {
   const { id, ...object } = raw;
-  object.fk_collection = object.fk_collection
-    ? { id: object.fk_collection, name: object.collection_name, specialedition: object.collection_special }
+
+  const collectionId = raw.fk_collection || null;
+  const editionId = raw.fk_edition || null;
+
+  // Nom de collection : champ dénormalisé, ou fallback depuis le cache
+  let collectionName = raw.collection_name ?? null;
+  let collectionSpecial = raw.collection_special ?? null;
+  if (collectionId && collectionName === null) {
+    const cached = LOADED_COLLECTIONS.find(c => c.id === collectionId);
+    if (cached) {
+      collectionName = cached.object.name ?? null;
+      collectionSpecial = cached.object.specialedition ?? null;
+    }
+  }
+
+  // Nom d'éditeur : champ dénormalisé, ou fallback depuis le cache
+  let editionName = raw.edition_name ?? null;
+  if (editionId && editionName === null) {
+    const cached = LOADED_EDITIONS.find(e => e.id === editionId);
+    if (cached) editionName = cached.object.name ?? null;
+  }
+
+  object.fk_collection = collectionId
+    ? { id: collectionId, name: collectionName, specialedition: collectionSpecial }
     : null;
-  object.fk_edition = object.fk_edition
-    ? { id: object.fk_edition, name: object.edition_name }
+  object.fk_edition = editionId
+    ? { id: editionId, name: editionName }
     : null;
-  object.fk_collection_id = raw.fk_collection || null;
-  object.fk_edition_id = raw.fk_edition || null;
+  object.fk_collection_id = collectionId;
+  object.fk_edition_id = editionId;
+  object.collection_name = collectionName;
+  object.collection_special = collectionSpecial;
+  object.edition_name = editionName;
+
   return { id: raw.id, object };
 }
 
