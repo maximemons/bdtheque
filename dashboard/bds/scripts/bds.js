@@ -9,6 +9,7 @@ import { showFatalError } from '../../../scripts/ui-error.js';
 import {
   initBdBooksUtils,
   isCanWrite,
+  preloadAllCollectionsAndEditions,
   loadNextBdPage,
   searchBdByPrefix,
   resetExpandSearch,
@@ -57,12 +58,28 @@ getCurrentUser().then(async (user) => {
 
     Array.from(document.getElementsByClassName("shortcut-search")).forEach(e => e.classList.remove("shortcut-search"));
 
+    // Scanner code-barres (mobile uniquement — le bouton est masqué en CSS sur desktop)
+    initiateScanner("searchCamera", "closeCamera", "video", "overlay", "searchBarInput", () => {
+      document.getElementById("contentVideo").style.display = "none";
+      document.getElementById("modal").style.display = "none";
+      onSearch();
+    });
+    document.getElementById("searchCamera").addEventListener("click", () => {
+      document.getElementById("contentVideo").style.display = "block";
+      document.getElementById("modal").style.display = "block";
+    });
+
     document.getElementById("searchBarInput").addEventListener("change", onSearch);
     document.getElementById("searchBarInput").addEventListener("keydown", e => { if (e.key === "Enter") onSearch(); });
     document.getElementById("searchBar").addEventListener("click", onSearch);
 
-    // Premier chargement
-    await loadMoreBds();
+    // Charger les BD et pré-charger collections/éditeurs en parallèle.
+    // Les BD s'affichent dès que leur lot arrive ; les collections/éditeurs
+    // se chargent en arrière-plan pour alimenter l'autocomplete du formulaire.
+    await Promise.all([
+      loadMoreBds(),
+      preloadAllCollectionsAndEditions()
+    ]);
   } catch (error) {
     showFatalError("bdList", error, "chargement de la page Mes BDs");
   }

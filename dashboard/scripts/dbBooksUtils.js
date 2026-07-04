@@ -74,6 +74,20 @@ function rawToEntry(raw) {
   return { id: raw.id, object };
 }
 
+// Charge toutes les collections et éditeurs disponibles en arrière-plan,
+// pour alimenter l'autocomplete du formulaire d'ajout/édition de BD.
+// N'affecte pas les curseurs de pagination des BD.
+async function preloadAllCollectionsAndEditions() {
+  // Collections
+  while (collectionHasMore) {
+    await loadNextCollectionPage();
+  }
+  // Éditeurs
+  while (editeurHasMore) {
+    await loadNextEditeurPage();
+  }
+}
+
 // --- Chargement par lots ---
 
 async function loadNextBdPage() {
@@ -427,6 +441,7 @@ function getEditeurHasMore() { return editeurHasMore; }
 export {
   initBdBooksUtils,
   isCanWrite,
+  preloadAllCollectionsAndEditions,
   loadNextBdPage,
   loadNextCollectionPage,
   loadNextEditeurPage,
