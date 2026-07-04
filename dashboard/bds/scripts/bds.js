@@ -115,12 +115,47 @@ function renderBdList(bds, hasMore) {
     return;
   }
 
-  const grid = document.createElement("div");
-  grid.classList.add("bd-list");
+  // Grouper par collection (nom + spéciale)
+  const groups = {};
+  bds.forEach(bd => {
+    const colName = bd.object.collection_name || bd.object.fk_collection?.name || "";
+    const colSpecial = bd.object.collection_special || bd.object.fk_collection?.specialedition || "";
+    const key = colSpecial ? `${colName} — ${colSpecial}` : (colName || "Sans collection");
+    if (!groups[key]) groups[key] = [];
+    groups[key].push(bd);
+  });
 
-  bds.forEach(bd => appendBdCard(grid, bd));
+  // Trier les groupes alphabétiquement, "Sans collection" en dernier
+  const sortedKeys = Object.keys(groups).sort((a, b) => {
+    if (a === "Sans collection") return 1;
+    if (b === "Sans collection") return -1;
+    return a.localeCompare(b, "fr", { sensitivity: "base" });
+  });
 
-  bdList.appendChild(grid);
+  sortedKeys.forEach(key => {
+    const block = document.createElement("div");
+    block.classList.add("collection-block");
+
+    const heading = document.createElement("h2");
+    heading.textContent = key;
+    block.appendChild(heading);
+
+    const grid = document.createElement("div");
+    grid.classList.add("bd-list");
+
+    // Trier par numéro dans le groupe, puis par titre
+    groups[key]
+      .sort((a, b) => {
+        const na = parseInt(a.object.base_info?.number, 10) || 0;
+        const nb = parseInt(b.object.base_info?.number, 10) || 0;
+        if (na !== nb) return na - nb;
+        return (a.object.base_info?.title || "").localeCompare(b.object.base_info?.title || "", "fr", { sensitivity: "base" });
+      })
+      .forEach(bd => appendBdCard(grid, bd));
+
+    block.appendChild(grid);
+    bdList.appendChild(block);
+  });
 
   if (hasMore) {
     const btn = document.createElement("button");
@@ -135,7 +170,6 @@ function renderBdList(bds, hasMore) {
 function appendBdCard(container, bd) {
   const number = bd.object.base_info?.number ? bd.object.base_info.number + " · " : "";
   const title = bd.object.base_info?.title || "Sans titre";
-  const collection = bd.object.fk_collection?.name || "";
   const cover = bd.object.base_info?.cover || "";
   const state = bd.object.base_info?.state || "";
 
@@ -147,7 +181,6 @@ function appendBdCard(container, bd) {
     <img src="${cover}" alt="${title}" class="bd-cover"/>
     <div class="bd-info">
       <h3>${number}${title}</h3>
-      ${collection ? `<p class="bd-collection">${collection}</p>` : ""}
       ${state ? `<p><span class="state-badge">${state}</span></p>` : ""}
     </div>`;
 
