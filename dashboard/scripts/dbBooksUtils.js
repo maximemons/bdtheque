@@ -208,18 +208,26 @@ async function createBook(BD, COLLECTION, EDITION) {
   ]);
   const { collectionId, collectionName, collectionSpecial } = colResult;
   const { editionId, editionName } = edResult;
-  BD.fk_collection = collectionId ?? null;
-  BD.collection_name = collectionName ?? null;
-  BD.collection_special = collectionSpecial ?? null;
-  BD.fk_edition = editionId ?? null;
-  BD.edition_name = editionName ?? null;
-  const bdId = `${BD.base_info?.title || ''}:${BD.base_info?.number || ''}:${BD.base_info?.year || ''}:${generateShortUUID()}`;
-  await setDocument(Table.BDs, bdId, BD);
+
+  // Sérialiser en objet plain (Firestore refuse les instances de classe custom)
+  const bdData = {
+    fk_collection: collectionId ?? null,
+    collection_name: collectionName ?? null,
+    collection_special: collectionSpecial ?? null,
+    fk_edition: editionId ?? null,
+    edition_name: editionName ?? null,
+    base_info: { ...BD.base_info },
+    details: { ...BD.details },
+    purchasedate: BD.purchasedate ?? null
+  };
+
+  const bdId = `${bdData.base_info?.title || ''}:${bdData.base_info?.number || ''}:${bdData.base_info?.year || ''}:${generateShortUUID()}`;
+  await setDocument(Table.BDs, bdId, bdData);
   await Promise.all([
     collectionId ? incrementField(Table.Collections, collectionId, "bdCount", 1) : Promise.resolve(),
     editionId ? incrementField(Table.Editeurs, editionId, "bdCount", 1) : Promise.resolve()
   ]);
-  const entry = rawToEntry({ id: bdId, ...BD });
+  const entry = rawToEntry({ id: bdId, ...bdData });
   LOADED_BDS.push(entry);
   return bdId;
 }
@@ -235,12 +243,20 @@ async function updateBook(bdId, BD, COLLECTION, EDITION) {
   ]);
   const { collectionId, collectionName, collectionSpecial } = colResult;
   const { editionId, editionName } = edResult;
-  BD.fk_collection = collectionId ?? null;
-  BD.collection_name = collectionName ?? null;
-  BD.collection_special = collectionSpecial ?? null;
-  BD.fk_edition = editionId ?? null;
-  BD.edition_name = editionName ?? null;
-  await updateDocument(Table.BDs, bdId, BD);
+
+  // Sérialiser en objet plain (Firestore refuse les instances de classe custom)
+  const bdData = {
+    fk_collection: collectionId ?? null,
+    collection_name: collectionName ?? null,
+    collection_special: collectionSpecial ?? null,
+    fk_edition: editionId ?? null,
+    edition_name: editionName ?? null,
+    base_info: { ...BD.base_info },
+    details: { ...BD.details },
+    purchasedate: BD.purchasedate ?? null
+  };
+
+  await updateDocument(Table.BDs, bdId, bdData);
   const counterUpdates = [];
   if (oldCollectionId !== collectionId) {
     if (oldCollectionId) counterUpdates.push(incrementField(Table.Collections, oldCollectionId, "bdCount", -1));
@@ -251,7 +267,7 @@ async function updateBook(bdId, BD, COLLECTION, EDITION) {
     if (editionId) counterUpdates.push(incrementField(Table.Editeurs, editionId, "bdCount", 1));
   }
   if (counterUpdates.length > 0) await Promise.all(counterUpdates);
-  const entry = rawToEntry({ id: bdId, ...BD });
+  const entry = rawToEntry({ id: bdId, ...bdData });
   const index = LOADED_BDS.findIndex(b => b.id === bdId);
   if (index === -1) LOADED_BDS.push(entry); else LOADED_BDS[index] = entry;
 }
