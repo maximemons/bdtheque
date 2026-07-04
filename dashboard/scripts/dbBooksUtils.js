@@ -217,7 +217,7 @@ async function findOrCreateCollection(COLLECTION) {
     return { collectionId: exact.id, collectionName: exact.name, collectionSpecial: exact.specialedition };
   }
   const collectionId = `${COLLECTION.name}:${COLLECTION.specialedition ?? ''}:${generateShortUUID()}`;
-  const data = { ...COLLECTION, bdCount: 0 };
+  const data = { name: COLLECTION.name, specialedition: COLLECTION.specialedition ?? null, bdCount: 0 };
   await setDocument(Table.Collections, collectionId, data);
   LOADED_COLLECTIONS.push({ id: collectionId, object: { id: collectionId, ...data } });
   return { collectionId, collectionName: COLLECTION.name, collectionSpecial: COLLECTION.specialedition };
@@ -234,7 +234,7 @@ async function findOrCreateEditeur(EDITION) {
     return { editionId: matches[0].id, editionName: matches[0].name };
   }
   const editionId = `${EDITION.name}:${generateShortUUID()}`;
-  const data = { ...EDITION, bdCount: 0 };
+  const data = { name: EDITION.name, bdCount: 0 };
   await setDocument(Table.Editeurs, editionId, data);
   LOADED_EDITIONS.push({ id: editionId, object: { id: editionId, ...data } });
   return { editionId, editionName: EDITION.name };
@@ -362,7 +362,10 @@ async function createCollection(COLLECTION) {
 
 async function renameCollection(collectionId, COLLECTION) {
   ensureWritable();
-  await updateDocument(Table.Collections, collectionId, { ...COLLECTION });
+  await updateDocument(Table.Collections, collectionId, {
+    name: COLLECTION.name,
+    specialedition: COLLECTION.specialedition ?? null
+  });
   const item = LOADED_COLLECTIONS.find(c => c.id === collectionId);
   if (item) item.object = { ...item.object, ...COLLECTION };
   const bdsToUpdate = await getDocumentsWithWhere(Table.BDs, [{ field: "fk_collection", operator: "==", value: collectionId }]);
@@ -416,7 +419,7 @@ async function createEditeur(EDITION) {
 
 async function renameEditeur(editionId, EDITION) {
   ensureWritable();
-  await updateDocument(Table.Editeurs, editionId, { ...EDITION });
+  await updateDocument(Table.Editeurs, editionId, { name: EDITION.name });
   const item = LOADED_EDITIONS.find(e => e.id === editionId);
   if (item) item.object = { ...item.object, ...EDITION };
   const bdsToUpdate = await getDocumentsWithWhere(Table.BDs, [{ field: "fk_edition", operator: "==", value: editionId }]);
