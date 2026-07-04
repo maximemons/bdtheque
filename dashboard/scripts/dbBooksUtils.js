@@ -209,16 +209,28 @@ async function createBook(BD, COLLECTION, EDITION) {
   const { collectionId, collectionName, collectionSpecial } = colResult;
   const { editionId, editionName } = edResult;
 
-  // Sérialiser en objet plain (Firestore refuse les instances de classe custom)
+  // Sérialiser en objet plain et remplacer undefined par null (Firestore refuse undefined)
+  const clean = v => v ?? null;
   const bdData = {
     fk_collection: collectionId ?? null,
     collection_name: collectionName ?? null,
     collection_special: collectionSpecial ?? null,
     fk_edition: editionId ?? null,
     edition_name: editionName ?? null,
-    base_info: { ...BD.base_info },
-    details: { ...BD.details },
-    purchasedate: BD.purchasedate ?? null
+    base_info: {
+      ISBN: clean(BD.base_info?.ISBN),
+      number: clean(BD.base_info?.number),
+      title: clean(BD.base_info?.title),
+      year: clean(BD.base_info?.year),
+      state: clean(BD.base_info?.state),
+      cover: clean(BD.base_info?.cover)
+    },
+    details: {
+      reputation: clean(BD.details?.reputation),
+      goldedition: clean(BD.details?.goldedition),
+      special: clean(BD.details?.special)
+    },
+    purchasedate: clean(BD.purchasedate)
   };
 
   const bdId = `${bdData.base_info?.title || ''}:${bdData.base_info?.number || ''}:${bdData.base_info?.year || ''}:${generateShortUUID()}`;
@@ -244,16 +256,28 @@ async function updateBook(bdId, BD, COLLECTION, EDITION) {
   const { collectionId, collectionName, collectionSpecial } = colResult;
   const { editionId, editionName } = edResult;
 
-  // Sérialiser en objet plain (Firestore refuse les instances de classe custom)
+  // Sérialiser en objet plain et remplacer undefined par null (Firestore refuse undefined)
+  const clean = v => v ?? null;
   const bdData = {
     fk_collection: collectionId ?? null,
     collection_name: collectionName ?? null,
     collection_special: collectionSpecial ?? null,
     fk_edition: editionId ?? null,
     edition_name: editionName ?? null,
-    base_info: { ...BD.base_info },
-    details: { ...BD.details },
-    purchasedate: BD.purchasedate ?? null
+    base_info: {
+      ISBN: clean(BD.base_info?.ISBN),
+      number: clean(BD.base_info?.number),
+      title: clean(BD.base_info?.title),
+      year: clean(BD.base_info?.year),
+      state: clean(BD.base_info?.state),
+      cover: clean(BD.base_info?.cover)
+    },
+    details: {
+      reputation: clean(BD.details?.reputation),
+      goldedition: clean(BD.details?.goldedition),
+      special: clean(BD.details?.special)
+    },
+    purchasedate: clean(BD.purchasedate)
   };
 
   await updateDocument(Table.BDs, bdId, bdData);
