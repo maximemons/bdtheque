@@ -203,21 +203,43 @@ async function expandSearchNextBatch(searchQuery, onBatchChecked) {
 
 // --- Helpers création ---
 
+// Normalise un nom pour la comparaison/recherche : minuscules, sans accents, sans espaces superflus.
+function normalizeName(s) {
+  return String(s ?? '').toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .trim().replace(/\s+/g, ' ');
+}
+
 async function findOrCreateCollection(COLLECTION) {
   if (!COLLECTION.name) return { collectionId: undefined, collectionName: undefined, collectionSpecial: undefined };
+
+  const normName    = normalizeName(COLLECTION.name);
+  const normSpecial = normalizeName(COLLECTION.specialedition ?? '');
+
+  // 1. Chercher dans le cache local (insensible à la casse)
   const cached = LOADED_COLLECTIONS.find(
-    c => c.object.name === COLLECTION.name && c.object.specialedition === COLLECTION.specialedition
+    c => normalizeName(c.object.name) === normName &&
+         normalizeName(c.object.specialedition ?? '') === normSpecial
   );
   if (cached) return { collectionId: cached.id, collectionName: cached.object.name, collectionSpecial: cached.object.specialedition };
-  const matches = await getDocumentsWithWhere(Table.Collections, [{ field: "name", operator: "==", value: COLLECTION.name }]);
-  const exact = matches.find(m => m.specialedition === COLLECTION.specialedition);
+
+  // 2. Chercher dans Firestore via le champ name_normalized (insensible à la casse)
+  const matches = await getDocumentsWithWhere(Table.Collections, [{ field: "name_normalized", operator: "==", value: normName }]);
+  const exact = matches.find(m => normalizeName(m.specialedition ?? '') === normSpecial);
   if (exact) {
     if (!LOADED_COLLECTIONS.some(c => c.id === exact.id))
       LOADED_COLLECTIONS.push({ id: exact.id, object: exact });
     return { collectionId: exact.id, collectionName: exact.name, collectionSpecial: exact.specialedition };
   }
+
+  // 3. Créer (avec name_normalized pour les futures recherches)
   const collectionId = `${COLLECTION.name}:${COLLECTION.specialedition ?? ''}:${generateShortUUID()}`;
-  const data = { name: COLLECTION.name, specialedition: COLLECTION.specialedition ?? null, bdCount: 0 };
+  const data = {
+    name: COLLECTION.name,
+    name_normalized: normName,
+    specialedition: COLLECTION.specialedition ?? null,
+    bdCount: 0
+  };
   await setDocument(Table.Collections, collectionId, data);
   LOADED_COLLECTIONS.push({ id: collectionId, object: { id: collectionId, ...data } });
   return { collectionId, collectionName: COLLECTION.name, collectionSpecial: COLLECTION.specialedition };
@@ -225,16 +247,24 @@ async function findOrCreateCollection(COLLECTION) {
 
 async function findOrCreateEditeur(EDITION) {
   if (!EDITION.name) return { editionId: undefined, editionName: undefined };
-  const cached = LOADED_EDITIONS.find(e => e.object.name === EDITION.name);
+
+  const normName = normalizeName(EDITION.name);
+
+  // 1. Chercher dans le cache local (insensible à la casse)
+  const cached = LOADED_EDITIONS.find(e => normalizeName(e.object.name) === normName);
   if (cached) return { editionId: cached.id, editionName: cached.object.name };
-  const matches = await getDocumentsWithWhere(Table.Editeurs, [{ field: "name", operator: "==", value: EDITION.name }]);
+
+  // 2. Chercher dans Firestore via name_normalized
+  const matches = await getDocumentsWithWhere(Table.Editeurs, [{ field: "name_normalized", operator: "==", value: normName }]);
   if (matches[0]) {
     if (!LOADED_EDITIONS.some(e => e.id === matches[0].id))
       LOADED_EDITIONS.push({ id: matches[0].id, object: matches[0] });
     return { editionId: matches[0].id, editionName: matches[0].name };
   }
+
+  // 3. Créer (avec name_normalized)
   const editionId = `${EDITION.name}:${generateShortUUID()}`;
-  const data = { name: EDITION.name, bdCount: 0 };
+  const data = { name: EDITION.name, name_normalized: normName, bdCount: 0 };
   await setDocument(Table.Editeurs, editionId, data);
   LOADED_EDITIONS.push({ id: editionId, object: { id: editionId, ...data } });
   return { editionId, editionName: EDITION.name };
@@ -364,10 +394,11 @@ async function renameCollection(collectionId, COLLECTION) {
   ensureWritable();
   await updateDocument(Table.Collections, collectionId, {
     name: COLLECTION.name,
+    name_normalized: normalizeName(COLLECTION.name),
     specialedition: COLLECTION.specialedition ?? null
   });
   const item = LOADED_COLLECTIONS.find(c => c.id === collectionId);
-  if (item) item.object = { ...item.object, ...COLLECTION };
+  if (item) item.object = { ...item.object, ...COLLECTION, name_normalized: normalizeName(COLLECTION.name) };
   const bdsToUpdate = await getDocumentsWithWhere(Table.BDs, [{ field: "fk_collection", operator: "==", value: collectionId }]);
   await Promise.all(bdsToUpdate.map(bd =>
     updateDocument(Table.BDs, bd.id, { collection_name: COLLECTION.name, collection_special: COLLECTION.specialedition ?? null })
@@ -419,9 +450,9 @@ async function createEditeur(EDITION) {
 
 async function renameEditeur(editionId, EDITION) {
   ensureWritable();
-  await updateDocument(Table.Editeurs, editionId, { name: EDITION.name });
+  await updateDocument(Table.Editeurs, editionId, { name: EDITION.name, name_normalized: normalizeName(EDITION.name) });
   const item = LOADED_EDITIONS.find(e => e.id === editionId);
-  if (item) item.object = { ...item.object, ...EDITION };
+  if (item) item.object = { ...item.object, ...EDITION, name_normalized: normalizeName(EDITION.name) };
   const bdsToUpdate = await getDocumentsWithWhere(Table.BDs, [{ field: "fk_edition", operator: "==", value: editionId }]);
   await Promise.all(bdsToUpdate.map(bd =>
     updateDocument(Table.BDs, bd.id, { edition_name: EDITION.name })

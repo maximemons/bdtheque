@@ -30,6 +30,40 @@
   max-width: 640px;
 }
 
+/* Groupe ISBN + bouton scanner (mobile uniquement) */
+.isbn-input-group {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-top: 0.35rem;
+}
+
+.isbn-input-group input {
+  flex: 1;
+  margin-top: 0 !important;
+}
+
+.scan-isbn-btn {
+  display: none; /* masqué sur desktop */
+  padding: 0.55rem 0.75rem;
+  background: var(--spine-green);
+  color: white;
+  border: none;
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.scan-isbn-btn:hover {
+  opacity: 0.85;
+}
+
+@media (max-width: 650px) {
+  .scan-isbn-btn {
+    display: block;
+  }
+}
+
 /* Pendant le scan/saisie ISBN, le bouton caméra reste masqué sur desktop (réapparaît en mobile, cf. common.css) */
 #searchCamera {
   display: none;

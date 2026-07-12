@@ -61,7 +61,12 @@
             <form id="livre-form">
               <h2 id="formTitle">Ajouter une BD</h2>
               <label for="isbn">ISBN *</label>
-              <input type="text" id="isbn" name="isbn" required placeholder="978-3-16-148410-0">
+              <div class="isbn-input-group">
+                <input type="text" id="isbn" name="isbn" required placeholder="978-3-16-148410-0">
+                <button type="button" id="scanIsbnBtn" class="scan-isbn-btn" title="Scanner le code-barres">
+                  <i class="fas fa-camera"></i>
+                </button>
+              </div>
 
               <label for="collection">Collection</label>
               <div class="autocomplete-container">

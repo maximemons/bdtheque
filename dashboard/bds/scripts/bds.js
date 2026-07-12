@@ -58,17 +58,6 @@ getCurrentUser().then(async (user) => {
 
     Array.from(document.getElementsByClassName("shortcut-search")).forEach(e => e.classList.remove("shortcut-search"));
 
-    // Scanner code-barres (mobile uniquement — le bouton est masqué en CSS sur desktop)
-    initiateScanner("searchCamera", "closeCamera", "video", "overlay", "searchBarInput", () => {
-      document.getElementById("contentVideo").style.display = "none";
-      document.getElementById("modal").style.display = "none";
-      onSearch();
-    });
-    document.getElementById("searchCamera").addEventListener("click", () => {
-      document.getElementById("contentVideo").style.display = "block";
-      document.getElementById("modal").style.display = "block";
-    });
-
     document.getElementById("searchBarInput").addEventListener("change", onSearch);
     document.getElementById("searchBarInput").addEventListener("keydown", e => { if (e.key === "Enter") onSearch(); });
     document.getElementById("searchBar").addEventListener("click", onSearch);
@@ -456,6 +445,49 @@ function initAddForm() {
 
   document.getElementById("isbn").addEventListener("input", formatIsbnInput);
   document.getElementById("isbn").addEventListener("focusout", e => getInfosFromISBN(e.target.value));
+
+  // Scanner partagé (mobile uniquement). Un seul appel initiateScanner — les variables globales
+  // de scanner.js ne supportent pas plusieurs instances simultanées.
+  // On distingue le contexte (formulaire ou barre de recherche) via un flag.
+  let scanContext = "search"; // "search" | "form"
+
+  initiateScanner("searchCamera", "closeCamera", "video", "overlay", "searchBarInput", async () => {
+    document.getElementById("contentVideo").style.display = "none";
+    document.getElementById("modal").style.display = "none";
+    if (scanContext === "form") {
+      // Remettre le formulaire, lire l'ISBN scanné
+      document.getElementById("modal").style.display = "block";
+      document.getElementById("addBd").style.display = "block";
+      const isbn = document.getElementById("searchBarInput").value.trim();
+      if (isbn) {
+        document.getElementById("isbn").value = isbn;
+        document.getElementById("searchBarInput").value = "";
+        await getInfosFromISBN(isbn);
+      }
+    } else {
+      onSearch();
+    }
+    scanContext = "search";
+  });
+
+  document.getElementById("searchCamera").addEventListener("click", () => {
+    scanContext = "search";
+    document.getElementById("contentVideo").style.display = "block";
+    document.getElementById("modal").style.display = "block";
+  });
+
+  // Bouton scanner ISBN dans le formulaire (mobile uniquement, masqué en CSS sur desktop)
+  const scanIsbnBtn = document.getElementById("scanIsbnBtn");
+  if (scanIsbnBtn) {
+    scanIsbnBtn.addEventListener("click", () => {
+      scanContext = "form";
+      document.getElementById("addBd").style.display = "none";
+      document.getElementById("contentVideo").style.display = "block";
+      document.getElementById("modal").style.display = "block";
+      // Déclencher le scanner (même bouton que searchCamera côté scanner.js)
+      document.getElementById("searchCamera").click();
+    });
+  }
   document.getElementById("livre-form").addEventListener("submit", onSubmitAddBdForm);
   document.getElementById("couverture").addEventListener("change", previewImageForm);
   document.getElementById("cancelAddBd").addEventListener("click", hideAddBdForm);
