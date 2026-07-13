@@ -270,6 +270,41 @@ async function findOrCreateEditeur(EDITION) {
   return { editionId, editionName: EDITION.name };
 }
 
+// Génère une couverture SVG de remplacement quand Open Library n'a rien
+// ou qu'aucune image n'a été fournie. La couleur est déterministe par collection.
+function makeFallbackCover(collectionName, numero, titre) {
+  const PALETTE = [
+    ['#2E4057','#E8D5B0'], ['#5C3317','#F5DEB3'], ['#1B4332','#D4F1C0'],
+    ['#3D0C11','#F9C6C6'], ['#0D1B2A','#C8D8E8'], ['#4A1942','#E8C6E8'],
+    ['#1C3A4A','#B0D4E8'], ['#3B2F2F','#E8D5B0'], ['#1A3A2A','#B0E8C6'],
+    ['#2D1B4E','#D5C6F0'],
+  ];
+  const colStr = String(collectionName || titre || '');
+  let hash = 0;
+  for (let i = 0; i < colStr.length; i++) hash = (hash * 31 + colStr.charCodeAt(i)) & 0xffffffff;
+  const [bg, fg] = PALETTE[Math.abs(hash) % PALETTE.length];
+
+  const words = colStr.trim().split(/\s+/).filter(Boolean);
+  const initials = words.length === 1
+    ? words[0].slice(0, 3).toUpperCase()
+    : words.slice(0, 3).map(w => w[0]).join('').toUpperCase();
+
+  const num = numero ? String(numero) : '';
+  const titleShort = String(titre || collectionName || '').slice(0, 44);
+
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 300" width="200" height="300">
+<rect width="200" height="300" fill="${bg}"/>
+<rect x="0" y="0" width="8" height="300" fill="${fg}" opacity="0.6"/>
+<rect x="0" y="260" width="200" height="40" fill="${fg}" opacity="0.15"/>
+${num ? `<text x="180" y="30" font-family="Georgia,serif" font-size="22" font-weight="bold" fill="${fg}" opacity="0.5" text-anchor="end">${num}</text>` : ''}
+<text x="100" y="145" font-family="Georgia,serif" font-size="52" font-weight="bold" fill="${fg}" text-anchor="middle" opacity="0.9">${initials}</text>
+<text x="100" y="195" font-family="Arial,sans-serif" font-size="11" fill="${fg}" text-anchor="middle" opacity="0.8">${titleShort.slice(0,22)}</text>
+${titleShort.length > 22 ? `<text x="100" y="210" font-family="Arial,sans-serif" font-size="11" fill="${fg}" text-anchor="middle" opacity="0.8">${titleShort.slice(22,44)}</text>` : ''}
+</svg>`;
+
+  return 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svg)));
+}
+
 // --- BD CRUD ---
 
 async function createBook(BD, COLLECTION, EDITION) {
@@ -281,8 +316,10 @@ async function createBook(BD, COLLECTION, EDITION) {
   const { collectionId, collectionName, collectionSpecial } = colResult;
   const { editionId, editionName } = edResult;
 
-  // Sérialiser en objet plain et remplacer undefined par null (Firestore refuse undefined)
   const clean = v => v ?? null;
+  const coverValue = clean(BD.base_info?.cover)
+    || makeFallbackCover(collectionName, BD.base_info?.number, BD.base_info?.title);
+
   const bdData = {
     fk_collection: collectionId ?? null,
     collection_name: collectionName ?? null,
@@ -295,7 +332,7 @@ async function createBook(BD, COLLECTION, EDITION) {
       title: clean(BD.base_info?.title),
       year: clean(BD.base_info?.year),
       state: clean(BD.base_info?.state),
-      cover: clean(BD.base_info?.cover)
+      cover: coverValue
     },
     details: {
       reputation: clean(BD.details?.reputation),
@@ -330,6 +367,9 @@ async function updateBook(bdId, BD, COLLECTION, EDITION) {
 
   // Sérialiser en objet plain et remplacer undefined par null (Firestore refuse undefined)
   const clean = v => v ?? null;
+  const coverValue = clean(BD.base_info?.cover)
+    || makeFallbackCover(collectionName, BD.base_info?.number, BD.base_info?.title);
+
   const bdData = {
     fk_collection: collectionId ?? null,
     collection_name: collectionName ?? null,
@@ -342,7 +382,7 @@ async function updateBook(bdId, BD, COLLECTION, EDITION) {
       title: clean(BD.base_info?.title),
       year: clean(BD.base_info?.year),
       state: clean(BD.base_info?.state),
-      cover: clean(BD.base_info?.cover)
+      cover: coverValue
     },
     details: {
       reputation: clean(BD.details?.reputation),
